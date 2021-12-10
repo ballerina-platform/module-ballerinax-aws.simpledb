@@ -1,0 +1,12 @@
+[package]
+org = "ballerinax"
+name = "aws.simpledb"
+version = "1.0.0"
+license= ["Apache-2.0"]
+authors = ["Ballerina"]
+keywords= ["IT Operations/Databases", "Cost/Freemium", "Vendor/Amazon"]
+repository = "https://github.com/ballerina-platform/module-ballerinax-aws.simpledb"
+icon = "icon.png"
+
+[build-options]
+observabilityIncluded = true
