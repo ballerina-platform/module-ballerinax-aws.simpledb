@@ -7,7 +7,7 @@ The `ballerinax/aws.simpledb` is a [Ballerina](https://ballerina.io/) connector 
 ### Compatibility
 |                     | Version         |  
 |---------------------|-----------------|
-| Ballerina Language  | Swan Lake Beta3 |
+| Ballerina Language  | Swan Lake Beta6 |
 | Amazon SimpleDB API | 2009-04-15      |
 
 ## Report issues
