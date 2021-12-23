@@ -17,7 +17,7 @@
 
 xmlns "http://sdb.amazonaws.com/doc/2009-04-15/" as namespace;
 
-isolated function xmlToCreatedDomain(xml response) returns CreateDomainResponse|error {
+isolated function xmlToCreatedDomain(xml response) returns CreateDomainResponse|xml|error {
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         ResponseMetadata responseMetadata = {
@@ -29,11 +29,11 @@ isolated function xmlToCreatedDomain(xml response) returns CreateDomainResponse|
         };
         return createDomainResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToDomainMetaData(xml response) returns DomainMetaDataResponse|error {
+isolated function xmlToDomainMetaData(xml response) returns DomainMetaDataResponse|xml|error {
     xml domainMetadata = response/<namespace:DomainMetadataResult>;
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
@@ -56,11 +56,11 @@ isolated function xmlToDomainMetaData(xml response) returns DomainMetaDataRespon
         };
         return domainMetaDataResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToSelectResponse(xml response) returns SelectResponse|error {
+isolated function xmlToSelectResponse(xml response) returns SelectResponse|xml|error {
     xml selectdResult = response/<namespace:SelectResult>;
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
@@ -77,11 +77,11 @@ isolated function xmlToSelectResponse(xml response) returns SelectResponse|error
         };
         return selectResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToGetAttributesResponse(xml response) returns GetAttributesResponse|error {
+isolated function xmlToGetAttributesResponse(xml response) returns GetAttributesResponse|xml|error {
     xml getAttributeResult = response/<namespace:GetAttributesResult>;
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
@@ -98,11 +98,11 @@ isolated function xmlToGetAttributesResponse(xml response) returns GetAttributes
         };
         return getAttributesResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToPutAttributesResponse(xml response) returns PutAttributesResponse|error {
+isolated function xmlToPutAttributesResponse(xml response) returns PutAttributesResponse|xml|error {
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         ResponseMetadata responseMetadata = {
@@ -114,11 +114,11 @@ isolated function xmlToPutAttributesResponse(xml response) returns PutAttributes
         };
         return putAttributesResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToDeleteAttributesResponse(xml response) returns DeleteAttributesResponse|error {
+isolated function xmlToDeleteAttributesResponse(xml response) returns DeleteAttributesResponse|xml|error {
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         ResponseMetadata responseMetadata = {
@@ -130,11 +130,11 @@ isolated function xmlToDeleteAttributesResponse(xml response) returns DeleteAttr
         };
         return deleteAttributesResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToDeletedDomain(xml response) returns DeleteDomainResponse|error {
+isolated function xmlToDeletedDomain(xml response) returns DeleteDomainResponse|xml|error {
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         ResponseMetadata responseMetadata = {
@@ -146,11 +146,11 @@ isolated function xmlToDeletedDomain(xml response) returns DeleteDomainResponse|
         };
         return deleteDomainResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
 
-isolated function xmlToListsDomain(xml response) returns ListDomainsResponse|error {
+isolated function xmlToListsDomain(xml response) returns ListDomainsResponse|xml|error {
     xml listDomainResult = response/<namespace:ListDomainsResult>;
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
@@ -168,6 +168,6 @@ isolated function xmlToListsDomain(xml response) returns ListDomainsResponse|err
         };
         return listDomainsResponse;
     } else {
-        return error(response.toString());
+        return response;
     }
 }
