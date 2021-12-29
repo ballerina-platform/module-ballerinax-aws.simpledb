@@ -29,7 +29,7 @@ import ballerina/url;
 # + securityToken - Security token
 # + region - Amazon API Region
 # + amazonHost - Amazon host name
-@display {label: "Amazon SimpleDB", iconPath: "icon.png"}
+@display {label: "Amazon SimpleDB", iconPath: "resources/aws.simpledb.svg"}
 public isolated client class Client {
     final string accessKeyId;
     final string secretAccessKey;
@@ -58,7 +58,7 @@ public isolated client class Client {
     #
     # + domainName - Name of domain
     # + return - `CreateDomainResponse` on success else an `error`
-    remote isolated function createDomain(string domainName) returns @tainted CreateDomainResponse|error {
+    remote isolated function createDomain(string domainName) returns @tainted CreateDomainResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "CreateDomain";
         parameters["DomainName"] = domainName;
@@ -67,7 +67,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        CreateDomainResponse createdDomainResponse = check xmlToCreatedDomain(response);
+        CreateDomainResponse|xml createdDomainResponse = check xmlToCreatedDomain(response);
         return createdDomainResponse;
     }
 
@@ -75,7 +75,7 @@ public isolated client class Client {
     #
     # + domainName - Name of domain
     # + return - `DomainMetaDataResponse` on success else an `error`
-    remote isolated function getDomainMetaData(string domainName) returns @tainted DomainMetaDataResponse|error {
+    remote isolated function getDomainMetaData(string domainName) returns @tainted DomainMetaDataResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "DomainMetadata";
         parameters["DomainName"] = domainName;
@@ -84,7 +84,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        DomainMetaDataResponse domainMetaDataResponse = check xmlToDomainMetaData(response);
+        DomainMetaDataResponse|xml domainMetaDataResponse = check xmlToDomainMetaData(response);
         return domainMetaDataResponse;
     }
 
@@ -93,7 +93,7 @@ public isolated client class Client {
     # + selectExpression - Select expression to get attributes
     # + consistentRead - True if consistent reads are to be accepted
     # + return - `SelectResponse` on success else an `error`
-    remote isolated function 'select(string selectExpression, boolean consistentRead) returns @tainted SelectResponse|error {
+    remote isolated function 'select(string selectExpression, boolean consistentRead) returns @tainted SelectResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "Select";
         parameters["SelectExpression"] = selectExpression;
@@ -103,14 +103,14 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        SelectResponse selectResponse = check xmlToSelectResponse(response);
+        SelectResponse|xml selectResponse = check xmlToSelectResponse(response);
         return selectResponse;
     }
 
     # list available domains.
     #
     # + return - `ListDomainsResponse` on success else an `error`
-    remote isolated function listDomains() returns @tainted ListDomainsResponse|error {
+    remote isolated function listDomains() returns @tainted ListDomainsResponse|xml|error {
         map<string> parameters = {};     
         parameters["Action"] = "ListDomains";
         string timestamp = check self.generateTimestamp();
@@ -118,7 +118,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        ListDomainsResponse listDomainsResponse = check xmlToListsDomain(response);
+        ListDomainsResponse|xml listDomainsResponse = check xmlToListsDomain(response);
         return listDomainsResponse;
     }
 
@@ -126,7 +126,7 @@ public isolated client class Client {
     #
     # + domainName - Name of domain
     # + return - `DeleteDomainResponse` on success else an `error`
-    remote isolated function deleteDomain(string domainName) returns @tainted DeleteDomainResponse|error {
+    remote isolated function deleteDomain(string domainName) returns @tainted DeleteDomainResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "DeleteDomain";
         parameters["DomainName"] = domainName;
@@ -135,7 +135,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        DeleteDomainResponse deletedDomainResponse = check xmlToDeletedDomain(response);
+        DeleteDomainResponse|xml deletedDomainResponse = check xmlToDeletedDomain(response);
         return deletedDomainResponse;
     }
 
@@ -145,7 +145,7 @@ public isolated client class Client {
     # + itemName - Name of item
     # + consistentRead - True if consistent reads are to be accepted
     # + return - `GetAttributesResponse` on success else an `error`
-    remote isolated function getAttributes(string domainName, string itemName, boolean consistentRead) returns @tainted GetAttributesResponse|error {
+    remote isolated function getAttributes(string domainName, string itemName, boolean consistentRead) returns @tainted GetAttributesResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "GetAttributes";
         parameters["DomainName"] = domainName;
@@ -156,7 +156,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        GetAttributesResponse getAttributesResponse = check xmlToGetAttributesResponse(response);
+        GetAttributesResponse|xml getAttributesResponse = check xmlToGetAttributesResponse(response);
         return getAttributesResponse;
     }
 
@@ -166,7 +166,7 @@ public isolated client class Client {
     # + itemName - Name of item
     # + attributes - Attributes to create or replace values
     # + return - `PutAttributesResponse` on success else an `error`
-    remote isolated function putAttributes(string domainName, string itemName, Attribute attributes) returns @tainted PutAttributesResponse|error {
+    remote isolated function putAttributes(string domainName, string itemName, Attribute attributes) returns @tainted PutAttributesResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "PutAttributes";
         parameters["DomainName"] = domainName;
@@ -177,7 +177,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        PutAttributesResponse putAttributesResponse = check xmlToPutAttributesResponse(response);
+        PutAttributesResponse|xml putAttributesResponse = check xmlToPutAttributesResponse(response);
         return putAttributesResponse;
     }
 
@@ -187,7 +187,7 @@ public isolated client class Client {
     # + itemName - Name of item
     # + attributes - Attributes to create or replace values
     # + return - `DeleteAttributesResponse` on success else an `error`
-    remote isolated function deleteAttributes(string domainName, string itemName, Attribute attributes) returns @tainted DeleteAttributesResponse|error {
+    remote isolated function deleteAttributes(string domainName, string itemName, Attribute attributes) returns @tainted DeleteAttributesResponse|xml|error {
         map<string> parameters = {};
         parameters["Action"] = "DeleteAttributes";
         parameters["DomainName"] = domainName;
@@ -198,7 +198,7 @@ public isolated client class Client {
         http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
         string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
         xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
-        DeleteAttributesResponse deleteAttributesResponse = check xmlToDeleteAttributesResponse(response);
+        DeleteAttributesResponse|xml deleteAttributesResponse = check xmlToDeleteAttributesResponse(response);
         return deleteAttributesResponse;
     }
 

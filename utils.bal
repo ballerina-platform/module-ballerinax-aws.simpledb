@@ -57,11 +57,7 @@ isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request|err
     if (request is http:Request) {
         http:Response|error httpResponse = amazonSimpleDBClient->post("/", request);
         xml|error response = handleResponse(httpResponse);
-        if (response is xml) {
-            return response;
-        } else {
-            return response;
-        }
+        return response;
     } else {
         return error(REQUEST_ERROR);
     }
@@ -112,21 +108,22 @@ isolated function handleResponse(http:Response|http:PayloadType|error httpRespon
             return error ResponseHandleFailed(NO_CONTENT_SET_WITH_RESPONSE_MSG);
         }
         var xmlResponse = httpResponse.getXmlPayload();
-        if (xmlResponse is xml) {
-            if (httpResponse.statusCode == http:STATUS_OK) {
-                return xmlResponse;
-            } else {
-                xmlns "http://sdb.amazonaws.com/doc/2009-04-15/" as ns;
-                string xmlResponseErrorCode = httpResponse.statusCode.toString();
-                string responseErrorMessage = (xmlResponse/<ns:'error>/<ns:message>/*).toString();
-                string errorMsg = "status code" + ":" + xmlResponseErrorCode + 
-                    ";" + " " + "message" + ":" + " " + 
-                    responseErrorMessage;
-                return error(errorMsg);
-            }
-        } else {
-            return error(RESPONSE_PAYLOAD_IS_NOT_XML_MSG);
-        }
+        return xmlResponse;
+        // if (xmlResponse is xml) {
+        //     if (httpResponse.statusCode == http:STATUS_OK) {
+        //         return xmlResponse;
+        //     } else {
+        //         xmlns "http://sdb.amazonaws.com/doc/2009-04-15/" as ns;
+        //         string xmlResponseErrorCode = httpResponse.statusCode.toString();
+        //         string responseErrorMessage = (xmlResponse/<ns:'error>/<ns:message>/*).toString();
+        //         string errorMsg = "status code" + ":" + xmlResponseErrorCode + 
+        //             ";" + " " + "message" + ":" + " " + 
+        //             responseErrorMessage;
+        //         return error(errorMsg);
+        //     }
+        // } else {
+        //     return error(RESPONSE_PAYLOAD_IS_NOT_XML_MSG);
+        // }
     } else if (httpResponse is http:PayloadType) {
         return error(UNREACHABLE_STATE);
     } else {
