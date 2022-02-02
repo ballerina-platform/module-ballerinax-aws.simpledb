@@ -5,10 +5,10 @@ Connects to AWS simpledb from Ballerina
 The `ballerinax/aws.simpledb` is a [Ballerina](https://ballerina.io/) connector for [AWS SimpleDB](https://aws.amazon.com/simpledb/). It enables Ballerina developers to perform AWS SimpleDB related operations programmatically through the module `ballerinax/aws.simpledb`. 
 
 ### Compatibility
-|                     | Version         |  
-|---------------------|-----------------|
-| Ballerina Language  | Swan Lake Beta6 |
-| Amazon SimpleDB API | 2009-04-15      |
+|                     | Version            |  
+|---------------------|--------------------|
+| Ballerina Language  | Swan Lake 2201.0.0 |
+| Amazon SimpleDB API | 2009-04-15         |
 
 ## Report issues
 To report bugs, request new features, start new discussions, view project boards, etc., go to the [Ballerina Extended Library repository](https://github.com/ballerina-platform/ballerina-extended-library)
