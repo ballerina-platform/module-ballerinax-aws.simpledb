@@ -16,6 +16,7 @@
 
 import ballerina/test;
 import ballerina/os;
+import ballerina/log;
 
 configurable string accessKeyId = os:getEnv("ACCESS_KEY_ID");
 configurable string secretAccessKey = os:getEnv("SECRET_ACCESS_KEY");
@@ -33,50 +34,38 @@ ConnectionConfig config = {
 Client amazonSimpleDBClient = check new(config);
 
 @test:Config{}
-function testCreateDomain() {
-    CreateDomainResponse|xml|error response = amazonSimpleDBClient->createDomain("test");
-    if (response is error) {
-        test:assertFail(response.toString());
-    }
+function testCreateDomain() returns error? {
+    CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain("test");
+    log:printInfo(response.toString());
 }
 
 @test:Config{dependsOn: [testCreateDomain]}
-function testListDomains() {
-    ListDomainsResponse|xml|error response = amazonSimpleDBClient->listDomains();
-    if (response is error) {
-        test:assertFail(response.toString());
-    }
+function testListDomains() returns error? {
+    ListDomainsResponse|xml response = check amazonSimpleDBClient->listDomains();
+    log:printInfo(response.toString());
 }
 
 @test:Config{dependsOn: [testListDomains]}
-function testGetDomainMetaData() {
-    DomainMetaDataResponse|xml|error response = amazonSimpleDBClient->getDomainMetaData("test");
-    if (response is error) {
-        test:assertFail(response.toString());
-    }
+function testGetDomainMetaData() returns error? {
+    DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData("test");
+    log:printInfo(response.toString());
 }
 
 @test:Config{dependsOn: [testGetDomainMetaData]}
-function testSelect() {
+function testSelect() returns error? {
     string selectExpression = "select output_list from test"; 
-    SelectResponse|xml|error response = amazonSimpleDBClient->'select(selectExpression, true);
-    if (response is error) {
-        test:assertFail(response.toString());
-    }
+    SelectResponse|xml response = check amazonSimpleDBClient->'select(selectExpression, true);
+    log:printInfo(response.toString());
 }
 
 @test:Config{dependsOn: [testSelect]}
-function testDeleteDomain() {
-    DeleteDomainResponse|xml|error response = amazonSimpleDBClient->deleteDomain("test");
-    if (response is error) {
-        test:assertFail(response.toString());
-    }
+function testDeleteDomain() returns error? {
+    DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
+    log:printInfo(response.toString());
 }
 
 @test:Config{dependsOn: [testDeleteDomain]}
-function testGetAttributes() {
-    GetAttributesResponse|xml|error response = amazonSimpleDBClient->getAttributes("test", "output_list", true);
-    if (response is error) {
-        test:assertFail(response.toString());
-    }
+function testGetAttributes() returns error? {
+    GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
+    log:printInfo(response.toString());
 }

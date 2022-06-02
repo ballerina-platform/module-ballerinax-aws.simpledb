@@ -18,7 +18,6 @@ import ballerina/crypto;
 import ballerina/http;
 import ballerina/lang.array;
 import ballerina/time;
-import ballerina/url;
 
 # Ballerina Amazon SimpleDB API connector provides the capability to access Amazon SimpleDB Service.
 # This connector lets you to create and manage the SimpleDB domains.
@@ -202,12 +201,6 @@ public isolated client class Client {
         return deleteAttributesResponse;
     }
 
-    private isolated function calculateSigningKey(string secretAccessKey) 
-                                            returns byte[]|error {
-        byte[] signingKey = secretAccessKey.toBytes();
-        return signingKey;
-    }
-
     private isolated function generateTimestamp() returns string|error {
         [int, decimal] & readonly currentTime = time:utcNow();
         string amzDate = check utcToString(currentTime, ISO8601_FORMAT);
@@ -256,36 +249,6 @@ public isolated client class Client {
         string parameterQuery = buildPayload(parameters);      
         return parameterQuery;
     }
-
-    isolated function  getPathForQueryParam(map<anydata> queryParam)  returns  string|error {
-    string[] param = [];
-    param[param.length()] = "?";
-    foreach  var [key, value] in  queryParam.entries() {
-        if  value  is  () {
-            _ = queryParam.remove(key);
-        } else {
-            if  string:startsWith( key, "'") {
-                 param[param.length()] = string:substring(key, 1, key.length());
-            } else {
-                param[param.length()] = key;
-            }
-            param[param.length()] = "=";
-            if  value  is  string {
-                string updateV =  check url:encode(value, "UTF-8");
-                param[param.length()] = updateV;
-            } else {
-                param[param.length()] = value.toString();
-            }
-            param[param.length()] = "&";
-        }
-    }
-    _ = param.remove(param.length()-1);
-    if  param.length() ==  1 {
-        _ = param.remove(0);
-    }
-    string restOfPath = string:'join("", ...param);
-    return restOfPath;
-}
 }
 
 # Configuration provided for the client.
