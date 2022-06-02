@@ -22,8 +22,8 @@ You can now enter the credentials in the SimpleDB client configuration and creat
 
 ```ballerina
 simpledb:AwsCredentials awsCredentials = {
-    accessKey: "<ACCESS_KEY_ID>",
-    secretKey: "<SECRET_ACCESS_KEY>"
+    accessKeyId: "<ACCESS_KEY_ID>",
+    secretAccessKey: "<SECRET_ACCESS_KEY>"
 };
 
 simpledb:ConnectionConfig config = {
@@ -39,10 +39,8 @@ simpledb:Client amazonSimpleDBClient = check new (config);
 1. You can create a domain in Amazon SimpleDB as follows with `createDomain` method for a preferred domain name.
 
     ```ballerina
-    simpledb:CreateDomainResponse|error response = amazonSimpleDBClient->createDomain("NewTDomain");
-    if (response is simpledb:CreateDomainResponse) {
-        log:printInfo("Created Domain: " + response.toString());
-    }
+    simpledb:CreateDomainResponse response = check amazonSimpleDBClient->createDomain("NewTDomain");
+    log:printInfo("Created Domain: " + response.toString());
     ```
 2. Use `bal run` command to compile and run the Ballerina program. 
 

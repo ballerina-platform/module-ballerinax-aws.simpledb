@@ -31,28 +31,6 @@ isolated function buildPayload(map<string> parameters) returns string {
     return payload;
 }
 
-isolated function buildQueryString(string actionName, map<string> parameterMap, string... parameterValues) returns @tainted map<string> {
-    int index = 0;
-    parameterMap[ACTION] = actionName;
-    parameterMap[VERSION] = VERSION_NUMBER;
-    foreach string? parameterValue in parameterValues {
-        parameterMap[getAttributeName(parameterValue)] = parameterValue;            
-        index += 1;
-    }
-    return parameterMap;
-}
-
-isolated function addOptionalStringParameters(map<string> parameterMap, string?... optionalParameterValues) returns @tainted map<string>|error {
-    int index = 0;
-    foreach string? optionalParameterValue in optionalParameterValues {
-        if(optionalParameterValue is string) {
-            parameterMap[getAttributeName(optionalParameterValue)] = optionalParameterValue;            
-        }
-        index += 1;
-    }
-    return parameterMap;
-}
-
 isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request|error request, string queryParameters) returns @tainted xml|error {
     if (request is http:Request) {
         http:Response|error httpResponse = amazonSimpleDBClient->post("/", request);
