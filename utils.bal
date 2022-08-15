@@ -80,7 +80,7 @@ isolated function setAttributes(map<string> parameters, Attribute attributes) re
 #
 # + httpResponse - Http response or error
 # + return - If successful returns `xml` response. Else returns error
-isolated function handleResponse(http:Response|http:PayloadType|error httpResponse) returns @untainted xml|error {
+isolated function handleResponse(http:Response|error httpResponse) returns @untainted xml|error {
     if (httpResponse is http:Response) {
         if (httpResponse.statusCode == http:STATUS_NO_CONTENT) {
             return error ResponseHandleFailed(NO_CONTENT_SET_WITH_RESPONSE_MSG);
@@ -102,8 +102,6 @@ isolated function handleResponse(http:Response|http:PayloadType|error httpRespon
         // } else {
         //     return error(RESPONSE_PAYLOAD_IS_NOT_XML_MSG);
         // }
-    } else if (httpResponse is http:PayloadType) {
-        return error(UNREACHABLE_STATE);
     } else {
         return error(ERROR_OCCURRED_WHILE_INVOKING_REST_API_MSG, httpResponse);
     }
