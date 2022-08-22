@@ -39,14 +39,30 @@ public isolated client class Client {
 
     # Initializes the connector.
     #
-    # + configuration - Configuration for the connector
+    # + config - Configuration for the connector
     # + httpClientConfig - HTTP Configuration
     # + return - `http:Error` in case of failure to initialize or `null` if successfully initialized
-    public isolated function init(ConnectionConfig configuration, http:ClientConfiguration httpClientConfig = {}) returns error? {
-        self.accessKeyId = configuration.credentials.accessKeyId;
-        self.secretAccessKey = configuration.credentials.secretAccessKey;
-        self.securityToken = (configuration?.credentials?.securityToken is string) ? <string>(configuration?.credentials?.securityToken) : ();
-        self.region = configuration.region;
+    public isolated function init(ConnectionConfig config) returns error? {
+        self.accessKeyId = config.credentials.accessKeyId;
+        self.secretAccessKey = config.credentials.secretAccessKey;
+        self.securityToken = (config?.credentials?.securityToken is string) ? <string>(config?.credentials?.securityToken) : ();
+        self.region = config.region;
+        http:ClientConfiguration httpClientConfig = {
+            httpVersion: config.httpVersion,
+            http1Settings: config.http1Settings,
+            http2Settings: config.http2Settings,
+            timeout: config.timeout,
+            forwarded: config.forwarded,
+            poolConfig: config.poolConfig,
+            cache: config.cache,
+            compression: config.compression,
+            circuitBreaker: config.circuitBreaker,
+            retryConfig: config.retryConfig,
+            responseLimits: config.responseLimits,
+            secureSocket: config.secureSocket,
+            proxy: config.proxy,
+            validation: config.validation
+        };
         self.amazonHost = "sdb.amazonaws.com";
         string baseURL = "https://" + self.amazonHost;
         check validateCredentials(self.accessKeyId, self.secretAccessKey);
@@ -250,32 +266,3 @@ public isolated client class Client {
         return parameterQuery;
     }
 }
-
-# Configuration provided for the client.
-#
-# + credentials - Credentials to authenticate client 
-# + region - Region of SimpleDB resource
-public type ConnectionConfig record {
-    AwsCredentials|AwsTemporaryCredentials credentials;
-    string region = "us-east-1";
-};
-
-# AWS temporary credentials.
-#
-# + accessKeyId - Access key Id
-# + secretAccessKey - Security access key
-# + securityToken - Security token
-public type AwsTemporaryCredentials record {
-    string accessKeyId;
-    string secretAccessKey;
-    string securityToken;
-};
-
-# AWS credentials.
-#
-# + accessKeyId - Access key Id
-# + secretAccessKey - Security access key
-public type AwsCredentials record {
-    string accessKeyId;
-    string secretAccessKey;
-};
