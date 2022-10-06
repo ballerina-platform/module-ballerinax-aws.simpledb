@@ -28,7 +28,7 @@ AwsCredentials awsCredentials = {
 };
 
 ConnectionConfig config = {
-    credentials: awsCredentials
+    awsCredentials: awsCredentials
 };
 
 Client amazonSimpleDBClient = check new(config);
