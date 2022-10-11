@@ -18,6 +18,7 @@ import ballerina/crypto;
 import ballerina/http;
 import ballerina/lang.array;
 import ballerina/time;
+import ballerinax/'client.config;
 
 # Ballerina Amazon SimpleDB API connector provides the capability to access Amazon SimpleDB Service.
 # This connector lets you to create and manage the SimpleDB domains.
@@ -43,26 +44,12 @@ public isolated client class Client {
     # + httpClientConfig - HTTP Configuration
     # + return - `http:Error` in case of failure to initialize or `null` if successfully initialized
     public isolated function init(ConnectionConfig config) returns error? {
-        self.accessKeyId = config.credentials.accessKeyId;
-        self.secretAccessKey = config.credentials.secretAccessKey;
-        self.securityToken = (config?.credentials?.securityToken is string) ? <string>(config?.credentials?.securityToken) : ();
+        self.accessKeyId = config.awsCredentials.accessKeyId;
+        self.secretAccessKey = config.awsCredentials.secretAccessKey;
+        self.securityToken = (config?.awsCredentials?.securityToken is string) ?
+                             <string>(config?.awsCredentials?.securityToken) : ();
         self.region = config.region;
-        http:ClientConfiguration httpClientConfig = {
-            httpVersion: config.httpVersion,
-            http1Settings: {...config.http1Settings},
-            http2Settings: config.http2Settings,
-            timeout: config.timeout,
-            forwarded: config.forwarded,
-            poolConfig: config.poolConfig,
-            cache: config.cache,
-            compression: config.compression,
-            circuitBreaker: config.circuitBreaker,
-            retryConfig: config.retryConfig,
-            responseLimits: config.responseLimits,
-            secureSocket: config.secureSocket,
-            proxy: config.proxy,
-            validation: config.validation
-        };
+        http:ClientConfiguration httpClientConfig = check config:constructHTTPClientConfig(config);
         self.amazonHost = "sdb.amazonaws.com";
         string baseURL = "https://" + self.amazonHost;
         check validateCredentials(self.accessKeyId, self.secretAccessKey);
