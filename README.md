@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/workflows/CI/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/actions?query=workflow%3ACI)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.simpledb.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/commits/master)
+[![GraalVM Check](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/actions/workflows/build-with-bal-test-native.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/actions/workflows/build-with-bal-test-native.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [Amazon SimpleDB](https://aws.amazon.com/simpledb/) is a simple database service developed by Amazon.
