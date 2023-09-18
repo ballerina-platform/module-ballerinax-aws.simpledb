@@ -20,7 +20,6 @@ import ballerinax/'client.config;
 @display {label: "Connection Config"}
 public type ConnectionConfig record {|
     *config:ConnectionConfig;
-    never auth?;
     # AWS credentials
     AwsCredentials|AwsTemporaryCredentials awsCredentials;
     # AWS Region
@@ -56,7 +55,7 @@ public type AwsTemporaryCredentials record {
         label: "",
         kind: "password"
     }
-    string securityToken;   
+    string securityToken;
 };
 
 # An attribute for the item
