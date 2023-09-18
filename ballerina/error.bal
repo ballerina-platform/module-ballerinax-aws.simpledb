@@ -15,9 +15,13 @@
 // under the License.
 
 public type GenerateRequestFailed distinct error;
+
 public type OperationError distinct error;
+
 public type DataMappingError distinct error;
+
 public type FileReadFailed distinct error;
+
 public type ResponseHandleFailed distinct error;
 
 const string CONVERT_XML_TO_INBOUND_MESSAGES_FAILED_MSG = "Error while converting XML to Inbound Messages.";
