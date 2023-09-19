@@ -36,7 +36,7 @@ Client amazonSimpleDBClient = check new (config);
 function testCreateDomain() returns error? {
     CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain("test");
     if response is xml {
-        assert(response);
+        assertForErrors(response);
     }
 }
 
@@ -44,7 +44,7 @@ function testCreateDomain() returns error? {
 function testListDomains() returns error? {
     ListDomainsResponse|xml response = check amazonSimpleDBClient->listDomains();
     if response is xml {
-        assert(response);
+        assertForErrors(response);
     }
 }
 
@@ -52,7 +52,7 @@ function testListDomains() returns error? {
 function testGetDomainMetaData() returns error? {
     DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData("test");
     if response is xml {
-        assert(response);
+        assertForErrors(response);
     }
 }
 
@@ -61,7 +61,7 @@ function testSelect() returns error? {
     string selectExpression = "select output_list from test";
     SelectResponse|xml response = check amazonSimpleDBClient->'select(selectExpression, true);
     if response is xml {
-        assert(response);
+        assertForErrors(response);
     }
 }
 
@@ -69,7 +69,7 @@ function testSelect() returns error? {
 function testDeleteDomain() returns error? {
     DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
     if response is xml {
-        assert(response);
+        assertForErrors(response);
     }
 }
 
@@ -77,10 +77,10 @@ function testDeleteDomain() returns error? {
 function testGetAttributes() returns error? {
     GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
     if response is xml {
-        assert(response);
+        assertForErrors(response);
     }
 }
 
-function assert(xml response) {
+function assertForErrors(xml response) {
     test:assertFalse((response/<Errors>/*).data() != "", msg = response.toBalString());
 }
