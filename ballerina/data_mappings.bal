@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+
 xmlns "http://sdb.amazonaws.com/doc/2009-04-15/" as namespace;
 
 isolated function xmlToCreatedDomain(xml response) returns CreateDomainResponse|xml|error {
@@ -24,7 +25,7 @@ isolated function xmlToCreatedDomain(xml response) returns CreateDomainResponse|
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         CreateDomainResponse createDomainResponse = {
-            responseMetadata: responseMetadata
+            responseMetadata : responseMetadata 
         };
         return createDomainResponse;
     } else {
@@ -37,21 +38,21 @@ isolated function xmlToDomainMetaData(xml response) returns DomainMetaDataRespon
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         DomainMetadataResult domainMetadataResult = {
-            itemCount: (domainMetadata/<namespace:ItemCount>/*).toString(),
-            itemNamesSizeBytes: (domainMetadata/<namespace:ItemNamesSizeBytes>/*).toString(),
-            attributeNameCount: (domainMetadata/<namespace:AttributeNameCount>/*).toString(),
-            attributeNamesSizeBytes: (domainMetadata/<namespace:AttributeNamesSizeBytes>/*).toString(),
-            attributeValueCount: (domainMetadata/<namespace:AttributeValueCount>/*).toString(),
-            attributeValuesSizeBytes: (domainMetadata/<namespace:AttributeValuesSizeBytes>/*).toString(),
-            timestamp: (domainMetadata/<namespace:Timestamp>/*).toString()
+            itemCount : (domainMetadata/<namespace:ItemCount>/*).toString(),
+            itemNamesSizeBytes : (domainMetadata/<namespace:ItemNamesSizeBytes>/*).toString(),
+            attributeNameCount : (domainMetadata/<namespace:AttributeNameCount>/*).toString(),
+            attributeNamesSizeBytes : (domainMetadata/<namespace:AttributeNamesSizeBytes>/*).toString(),
+            attributeValueCount : (domainMetadata/<namespace:AttributeValueCount>/*).toString(),
+            attributeValuesSizeBytes : (domainMetadata/<namespace:AttributeValuesSizeBytes>/*).toString(),
+            timestamp : (domainMetadata/<namespace:Timestamp>/*).toString()
         };
         ResponseMetadata responseMetadata = {
             requestId: (responseMeta/<namespace:RequestId>/*).toString(),
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         DomainMetaDataResponse domainMetaDataResponse = {
-            domainMetadataResult: domainMetadataResult,
-            responseMetadata: responseMetadata
+            domainMetadataResult : domainMetadataResult,
+            responseMetadata : responseMetadata 
         };
         return domainMetaDataResponse;
     } else {
@@ -64,15 +65,15 @@ isolated function xmlToSelectResponse(xml response) returns SelectResponse|xml|e
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         SelectResult selectResult = {
-            items: (selectdResult/<namespace:Item>/*).toString()
-        };
+            items : (selectdResult/<namespace:Item>/*).toString()
+        };        
         ResponseMetadata responseMetadata = {
             requestId: (responseMeta/<namespace:RequestId>/*).toString(),
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         SelectResponse selectResponse = {
-            selectResult: selectResult,
-            responseMetadata: responseMetadata
+            selectResult : selectResult,
+            responseMetadata : responseMetadata 
         };
         return selectResponse;
     } else {
@@ -85,15 +86,15 @@ isolated function xmlToGetAttributesResponse(xml response) returns GetAttributes
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         GetAttributesResult getAttributesResult = {
-            attributes: (getAttributeResult/<namespace:Attribute>/*).toString()
-        };
+            attributes : (getAttributeResult/<namespace:Attribute>/*).toString()
+        };        
         ResponseMetadata responseMetadata = {
             requestId: (responseMeta/<namespace:RequestId>/*).toString(),
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         GetAttributesResponse getAttributesResponse = {
-            getAttributesResult: getAttributesResult,
-            responseMetadata: responseMetadata
+            getAttributesResult : getAttributesResult,
+            responseMetadata : responseMetadata 
         };
         return getAttributesResponse;
     } else {
@@ -109,7 +110,7 @@ isolated function xmlToPutAttributesResponse(xml response) returns PutAttributes
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         PutAttributesResponse putAttributesResponse = {
-            responseMetadata: responseMetadata
+            responseMetadata : responseMetadata 
         };
         return putAttributesResponse;
     } else {
@@ -125,7 +126,7 @@ isolated function xmlToDeleteAttributesResponse(xml response) returns DeleteAttr
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         DeleteAttributesResponse deleteAttributesResponse = {
-            responseMetadata: responseMetadata
+            responseMetadata : responseMetadata 
         };
         return deleteAttributesResponse;
     } else {
@@ -141,7 +142,7 @@ isolated function xmlToDeletedDomain(xml response) returns DeleteDomainResponse|
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         DeleteDomainResponse deleteDomainResponse = {
-            responseMetadata: responseMetadata
+            responseMetadata : responseMetadata 
         };
         return deleteDomainResponse;
     } else {
@@ -154,16 +155,16 @@ isolated function xmlToListsDomain(xml response) returns ListDomainsResponse|xml
     xml responseMeta = response/<namespace:ResponseMetadata>;
     if (responseMeta.toString() != EMPTY_STRING) {
         ListDomainsResult listDomainsResult = {
-            domainNames: (listDomainResult/<namespace:DomainName>/*).toString(),
-            nextToken: (listDomainResult/<namespace:NextToken>/*).toString()
-        };
+            domainNames : (listDomainResult/<namespace:DomainName>/*).toString(),
+            nextToken : (listDomainResult/<namespace:NextToken>/*).toString()
+        };        
         ResponseMetadata responseMetadata = {
             requestId: (responseMeta/<namespace:RequestId>/*).toString(),
             boxUsage: (responseMeta/<namespace:BoxUsage>/*).toString()
         };
         ListDomainsResponse listDomainsResponse = {
-            listDomainsResult: listDomainsResult,
-            responseMetadata: responseMetadata
+            listDomainsResult : listDomainsResult,
+            responseMetadata : responseMetadata 
         };
         return listDomainsResponse;
     } else {

@@ -22,18 +22,6 @@ import ballerina/regex;
 import ballerina/time;
 import ballerina/url;
 
-isolated function buildPayload(map<string> parameters) returns string {
-    string payload = EMPTY_STRING;
-    int parameterNumber = 1;
-    foreach var [key, value] in parameters.entries() {
-        if (parameterNumber > 1) {
-            payload = payload + AMBERSAND;
-        }
-        payload = payload + key + EQUAL + value;
-        parameterNumber = parameterNumber + 1;
-    }
-    return payload;
-}
 
 isolated function generateQueryParameters(map<string> parameters, string accessKeyId, string secretAccessKey) returns string|error {
     map<string> sortedParameters = check updateAndSortParameters(parameters, accessKeyId);
@@ -56,17 +44,16 @@ isolated function generateRequest() returns http:Request {
 }
 
 isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request|error request, string query) returns @tainted xml|error {
-    if (request is http:Request) {
+    if request is http:Request {
         http:Response|error httpResponse = amazonSimpleDBClient->post("/?" + query, request);
-        xml|error response = handleResponse(httpResponse);
-        return response;
+        return handleResponse(httpResponse);
     } else {
         return error(REQUEST_ERROR);
     }
 }
 
 isolated function validateCredentials(string accessKeyId, string secretAccessKey) returns error? {
-    if ((accessKeyId == EMPTY_STRING) || (secretAccessKey == EMPTY_STRING)) {
+    if accessKeyId == EMPTY_STRING || secretAccessKey == EMPTY_STRING {
         return error(EMPTY_CREDENTIALS);
     }
     return;
@@ -105,8 +92,8 @@ isolated function setAttributes(map<string> parameters, Attribute attributes) re
 # + httpResponse - Http response or error
 # + return - If successful returns `xml` response. Else returns error
 isolated function handleResponse(http:Response|error httpResponse) returns @untainted xml|error {
-    if (httpResponse is http:Response) {
-        if (httpResponse.statusCode == http:STATUS_NO_CONTENT) {
+    if httpResponse is http:Response {
+        if httpResponse.statusCode == http:STATUS_NO_CONTENT {
             return error ResponseHandleFailed(NO_CONTENT_SET_WITH_RESPONSE_MSG);
         }
         var xmlResponse = httpResponse.getXmlPayload();
@@ -144,18 +131,24 @@ isolated function updateAndSortParameters(map<string> parameters, string accessK
 isolated function calculateStringToSignV2(map<string> parameters) returns string|error {
     map<string> sortedParameters = sortParameters(parameters);
     string stringToSign = EMPTY_STRING;
-    stringToSign = stringToSign + POST + NEW_LINE;
-    stringToSign = stringToSign + AMAZON_AWS_HOST + NEW_LINE;
-    stringToSign = stringToSign + ENDPOINT + NEW_LINE;
-    int parameterNumber = 1;
-    foreach var [key, value] in sortedParameters.entries() {
-        if (parameterNumber > 1) {
-            stringToSign = stringToSign + AMBERSAND;
-        }
-        stringToSign = stringToSign + key + EQUAL + value;
-        parameterNumber = parameterNumber + 1;
-    }
+    stringToSign += POST + NEW_LINE;
+    stringToSign += AMAZON_AWS_HOST + NEW_LINE;
+    stringToSign += ENDPOINT + NEW_LINE;
+    stringToSign += buildPayload(sortedParameters);
     return stringToSign;
+}
+
+isolated function buildPayload(map<string> parameters) returns string {
+    string payload = EMPTY_STRING;
+    int parameterNumber = 1;
+    foreach var [key, value] in parameters.entries() {
+        if parameterNumber > 1 {
+            payload += AMBERSAND;
+        }
+        payload += key + EQUAL + value;
+        parameterNumber += 1;
+    }
+    return payload;
 }
 
 isolated function sortParameters(map<string> parameters) returns map<string> {
