@@ -70,3 +70,7 @@ Config.toml
 
 # .ballerina files
 *.ballerina
+
+# Dependency File
+ballerina/
+*Dependencies.toml
