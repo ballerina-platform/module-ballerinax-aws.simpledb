@@ -156,7 +156,7 @@ isolated function sortParameters(map<string> parameters) returns map<string> {
     map<string> sortedParameters = {};
     foreach var key in keys {
         string? value = parameters[key];
-        sortedParameters[key] = value == () ? EMPTY_STRING : value;
+        sortedParameters[key] = value is string ? value : EMPTY_STRING;
     }
     return sortedParameters;
 }
