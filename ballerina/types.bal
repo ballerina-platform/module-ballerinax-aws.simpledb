@@ -56,7 +56,7 @@ public type AwsTemporaryCredentials record {
         label: "",
         kind: "password"
     }
-    string securityToken;   
+    string securityToken;
 };
 
 # An attribute for the item

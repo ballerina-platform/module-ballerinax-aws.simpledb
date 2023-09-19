@@ -31,40 +31,40 @@ ConnectionConfig config = {
     awsCredentials: awsCredentials
 };
 
-Client amazonSimpleDBClient = check new(config);
+Client amazonSimpleDBClient = check new (config);
 
-@test:Config{}
+@test:Config {}
 function testCreateDomain() returns error? {
     CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain("test");
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testCreateDomain]}
+@test:Config {dependsOn: [testCreateDomain]}
 function testListDomains() returns error? {
     ListDomainsResponse|xml response = check amazonSimpleDBClient->listDomains();
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testListDomains]}
+@test:Config {dependsOn: [testListDomains]}
 function testGetDomainMetaData() returns error? {
     DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData("test");
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testGetDomainMetaData]}
+@test:Config {dependsOn: [testGetDomainMetaData]}
 function testSelect() returns error? {
-    string selectExpression = "select output_list from test"; 
+    string selectExpression = "select output_list from test";
     SelectResponse|xml response = check amazonSimpleDBClient->'select(selectExpression, true);
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testGetAttributes]}
+@test:Config {dependsOn: [testGetAttributes]}
 function testDeleteDomain() returns error? {
     DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testSelect]}
+@test:Config {dependsOn: [testSelect]}
 function testGetAttributes() returns error? {
     GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
     log:printInfo(response.toString());

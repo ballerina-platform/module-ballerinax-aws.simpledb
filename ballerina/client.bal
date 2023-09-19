@@ -62,7 +62,7 @@ public isolated client class Client {
         parameters[ACTION] = check urlEncode(CREATE_DOMAIN);
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         CreateDomainResponse|xml createdDomainResponse = check xmlToCreatedDomain(response);
         return createdDomainResponse;
     }
@@ -76,7 +76,7 @@ public isolated client class Client {
         parameters[ACTION] = check urlEncode(DOMAIN_METADATA);
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         DomainMetaDataResponse|xml domainMetaDataResponse = check xmlToDomainMetaData(response);
         return domainMetaDataResponse;
     }
@@ -92,7 +92,7 @@ public isolated client class Client {
         parameters[SELECT_EXPRESSION] = check urlEncode(selectExpression);
         parameters[CONSISTENT_READ] = check urlEncode(consistentRead.toString());
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         SelectResponse|xml selectResponse = check xmlToSelectResponse(response);
         return selectResponse;
     }
@@ -104,7 +104,7 @@ public isolated client class Client {
         map<string> parameters = {};
         parameters[ACTION] = check urlEncode(LIST_DOMAIN);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         ListDomainsResponse|xml listDomainsResponse = check xmlToListsDomain(response);
         return listDomainsResponse;
     }
@@ -118,7 +118,7 @@ public isolated client class Client {
         parameters[ACTION] = check urlEncode(DELETE_DOMAIN);
         parameters[DOMAIN_NAME] = domainName;
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         DeleteDomainResponse|xml deletedDomainResponse = check xmlToDeletedDomain(response);
         return deletedDomainResponse;
     }
@@ -136,7 +136,7 @@ public isolated client class Client {
         parameters[ITEM_NAME] = check urlEncode(itemName);
         parameters[CONSISTENT_READ] = check urlEncode(consistentRead.toString());
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         GetAttributesResponse|xml getAttributesResponse = check xmlToGetAttributesResponse(response);
         return getAttributesResponse;
     }
@@ -153,7 +153,7 @@ public isolated client class Client {
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         parameters[ITEM_NAME] = check urlEncode(itemName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         PutAttributesResponse|xml putAttributesResponse = check xmlToPutAttributesResponse(response);
         return putAttributesResponse;
     }
@@ -170,7 +170,7 @@ public isolated client class Client {
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         parameters[ITEM_NAME] = check urlEncode(itemName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         DeleteAttributesResponse|xml deleteAttributesResponse = check xmlToDeleteAttributesResponse(response);
         return deleteAttributesResponse;
     }
