@@ -35,41 +35,41 @@ Client amazonSimpleDBClient = check new (config);
 @test:Config {}
 function testCreateDomain() returns error? {
     CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain("test");
-    assertForErrors(response);
+    assertForResponseErrors(response);
 }
 
 @test:Config {dependsOn: [testCreateDomain]}
 function testListDomains() returns error? {
     ListDomainsResponse|xml response = check amazonSimpleDBClient->listDomains();
-    assertForErrors(response);
+    assertForResponseErrors(response);
 }
 
 @test:Config {dependsOn: [testListDomains]}
 function testGetDomainMetaData() returns error? {
     DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData("test");
-    assertForErrors(response);
+    assertForResponseErrors(response);
 }
 
 @test:Config {dependsOn: [testGetDomainMetaData]}
 function testSelect() returns error? {
     string selectExpression = "select output_list from test";
     SelectResponse|xml response = check amazonSimpleDBClient->'select(selectExpression, true);
-    assertForErrors(response);
+    assertForResponseErrors(response);
 }  
 
 @test:Config {dependsOn: [testGetAttributes]}
 function testDeleteDomain() returns error? {
     DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
-    assertForErrors(response);
+    assertForResponseErrors(response);
 }
 
 @test:Config {dependsOn: [testSelect]}
 function testGetAttributes() returns error? {
     GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
-    assertForErrors(response);
+    assertForResponseErrors(response);
 }
 
-function assertForErrors(anydata response) {
+function assertForResponseErrors(anydata response) {
     if response is xml {
         test:assertFalse((response/<Errors>/*).data() != "", msg = response.toBalString());
     }
