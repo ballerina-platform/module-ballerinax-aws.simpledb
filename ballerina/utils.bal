@@ -22,7 +22,6 @@ import ballerina/regex;
 import ballerina/time;
 import ballerina/url;
 
-
 isolated function generateQueryParameters(map<string> parameters, string accessKeyId, string secretAccessKey) returns string|error {
     map<string> sortedParameters = check updateAndSortParameters(parameters, accessKeyId);
     string formattedParameters = check calculateStringToSignV2(sortedParameters);
