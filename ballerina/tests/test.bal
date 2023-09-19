@@ -35,52 +35,42 @@ Client amazonSimpleDBClient = check new (config);
 @test:Config {}
 function testCreateDomain() returns error? {
     CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain("test");
-    if response is xml {
-        assertForErrors(response);
-    }
+    assertForErrors(response);
 }
 
 @test:Config {dependsOn: [testCreateDomain]}
 function testListDomains() returns error? {
     ListDomainsResponse|xml response = check amazonSimpleDBClient->listDomains();
-    if response is xml {
-        assertForErrors(response);
-    }
+    assertForErrors(response);
 }
 
 @test:Config {dependsOn: [testListDomains]}
 function testGetDomainMetaData() returns error? {
     DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData("test");
-    if response is xml {
-        assertForErrors(response);
-    }
+    assertForErrors(response);
 }
 
 @test:Config {dependsOn: [testGetDomainMetaData]}
 function testSelect() returns error? {
     string selectExpression = "select output_list from test";
     SelectResponse|xml response = check amazonSimpleDBClient->'select(selectExpression, true);
-    if response is xml {
-        assertForErrors(response);
-    }
-}
+    assertForErrors(response);
+}  
 
 @test:Config {dependsOn: [testGetAttributes]}
 function testDeleteDomain() returns error? {
     DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
-    if response is xml {
-        assertForErrors(response);
-    }
+    assertForErrors(response);
 }
 
 @test:Config {dependsOn: [testSelect]}
 function testGetAttributes() returns error? {
     GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
-    if response is xml {
-        assertForErrors(response);
-    }
+    assertForErrors(response);
 }
 
-function assertForErrors(xml response) {
-    test:assertFalse((response/<Errors>/*).data() != "", msg = response.toBalString());
+function assertForErrors(anydata response) {
+    if response is xml {
+        test:assertFalse((response/<Errors>/*).data() != "", msg = response.toBalString());
+    }
 }
