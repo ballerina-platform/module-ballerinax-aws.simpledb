@@ -14,10 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/crypto;
 import ballerina/http;
-import ballerina/lang.array;
-import ballerina/time;
 import ballerinax/'client.config;
 
 # Ballerina Amazon SimpleDB API connector provides the capability to access Amazon SimpleDB Service.
@@ -47,11 +44,11 @@ public isolated client class Client {
         self.accessKeyId = config.awsCredentials.accessKeyId;
         self.secretAccessKey = config.awsCredentials.secretAccessKey;
         self.securityToken = (config?.awsCredentials?.securityToken is string) ?
-                             <string>(config?.awsCredentials?.securityToken) : ();
+            <string>(config?.awsCredentials?.securityToken) : ();
         self.region = config.region;
         http:ClientConfiguration httpClientConfig = check config:constructHTTPClientConfig(config);
-        self.amazonHost = "sdb.amazonaws.com";
-        string baseURL = "https://" + self.amazonHost;
+        self.amazonHost = AMAZON_AWS_HOST;
+        string baseURL = HTTPS + self.amazonHost;
         check validateCredentials(self.accessKeyId, self.secretAccessKey);
         self.amazonSimpleDBClient = check new (baseURL, httpClientConfig);
     }
@@ -62,13 +59,10 @@ public isolated client class Client {
     # + return - `CreateDomainResponse` on success else an `error`
     remote isolated function createDomain(string domainName) returns @tainted CreateDomainResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "CreateDomain";
-        parameters["DomainName"] = domainName;
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(CREATE_DOMAIN);
+        parameters[DOMAIN_NAME] = check urlEncode(domainName);
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         CreateDomainResponse|xml createdDomainResponse = check xmlToCreatedDomain(response);
         return createdDomainResponse;
     }
@@ -79,13 +73,10 @@ public isolated client class Client {
     # + return - `DomainMetaDataResponse` on success else an `error`
     remote isolated function getDomainMetaData(string domainName) returns @tainted DomainMetaDataResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "DomainMetadata";
-        parameters["DomainName"] = domainName;
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(DOMAIN_METADATA);
+        parameters[DOMAIN_NAME] = check urlEncode(domainName);
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         DomainMetaDataResponse|xml domainMetaDataResponse = check xmlToDomainMetaData(response);
         return domainMetaDataResponse;
     }
@@ -97,14 +88,11 @@ public isolated client class Client {
     # + return - `SelectResponse` on success else an `error`
     remote isolated function 'select(string selectExpression, boolean consistentRead) returns @tainted SelectResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "Select";
-        parameters["SelectExpression"] = selectExpression;
-        parameters["ConsistentRead"] = consistentRead.toString();
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(SELECT);
+        parameters[SELECT_EXPRESSION] = check urlEncode(selectExpression);
+        parameters[CONSISTENT_READ] = check urlEncode(consistentRead.toString());
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         SelectResponse|xml selectResponse = check xmlToSelectResponse(response);
         return selectResponse;
     }
@@ -113,13 +101,10 @@ public isolated client class Client {
     #
     # + return - `ListDomainsResponse` on success else an `error`
     remote isolated function listDomains() returns @tainted ListDomainsResponse|xml|error {
-        map<string> parameters = {};     
-        parameters["Action"] = "ListDomains";
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        map<string> parameters = {};
+        parameters[ACTION] = check urlEncode(LIST_DOMAIN);
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         ListDomainsResponse|xml listDomainsResponse = check xmlToListsDomain(response);
         return listDomainsResponse;
     }
@@ -130,13 +115,10 @@ public isolated client class Client {
     # + return - `DeleteDomainResponse` on success else an `error`
     remote isolated function deleteDomain(string domainName) returns @tainted DeleteDomainResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "DeleteDomain";
-        parameters["DomainName"] = domainName;
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(DELETE_DOMAIN);
+        parameters[DOMAIN_NAME] = domainName;
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         DeleteDomainResponse|xml deletedDomainResponse = check xmlToDeletedDomain(response);
         return deletedDomainResponse;
     }
@@ -149,15 +131,12 @@ public isolated client class Client {
     # + return - `GetAttributesResponse` on success else an `error`
     remote isolated function getAttributes(string domainName, string itemName, boolean consistentRead) returns @tainted GetAttributesResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "GetAttributes";
-        parameters["DomainName"] = domainName;
-        parameters["ItemName"] = itemName;
-        parameters["ConsistentRead"] = consistentRead.toString();
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(GET_ATTRIBUTES);
+        parameters[DOMAIN_NAME] = check urlEncode(domainName);
+        parameters[ITEM_NAME] = check urlEncode(itemName);
+        parameters[CONSISTENT_READ] = check urlEncode(consistentRead.toString());
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         GetAttributesResponse|xml getAttributesResponse = check xmlToGetAttributesResponse(response);
         return getAttributesResponse;
     }
@@ -170,15 +149,11 @@ public isolated client class Client {
     # + return - `PutAttributesResponse` on success else an `error`
     remote isolated function putAttributes(string domainName, string itemName, Attribute attributes) returns @tainted PutAttributesResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "PutAttributes";
-        parameters["DomainName"] = domainName;
-        parameters["ItemName"] = itemName;
-        parameters = setAttributes(parameters, attributes);
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(PUT_ATTRIBUTES);
+        parameters[DOMAIN_NAME] = check urlEncode(domainName);
+        parameters[ITEM_NAME] = check urlEncode(itemName);
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         PutAttributesResponse|xml putAttributesResponse = check xmlToPutAttributesResponse(response);
         return putAttributesResponse;
     }
@@ -191,65 +166,12 @@ public isolated client class Client {
     # + return - `DeleteAttributesResponse` on success else an `error`
     remote isolated function deleteAttributes(string domainName, string itemName, Attribute attributes) returns @tainted DeleteAttributesResponse|xml|error {
         map<string> parameters = {};
-        parameters["Action"] = "DeleteAttributes";
-        parameters["DomainName"] = domainName;
-        parameters["ItemName"] = itemName;
-        parameters = setAttributes(parameters, attributes);
-        string timestamp = check self.generateTimestamp();
-        string signatureString = check self.generateSignature(buildPayload(parameters), timestamp, parameters["Action"].toString());
-        http:Request|error request = self.generateRequest(buildPayload(parameters), timestamp, signatureString, parameters["Action"].toString());
-        string queryParameters = check self.generateQueryParameters(buildPayload(parameters), timestamp, signatureString);
-        xml response = check sendRequest(self.amazonSimpleDBClient, request, queryParameters);
+        parameters[ACTION] = check urlEncode(DELETE_ATTRIBUTES);
+        parameters[DOMAIN_NAME] = check urlEncode(domainName);
+        parameters[ITEM_NAME] = check urlEncode(itemName);
+        xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
+                                         check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
         DeleteAttributesResponse|xml deleteAttributesResponse = check xmlToDeleteAttributesResponse(response);
         return deleteAttributesResponse;
-    }
-
-    private isolated function generateTimestamp() returns string|error {
-        [int, decimal] & readonly currentTime = time:utcNow();
-        string amzDate = check utcToString(currentTime, ISO8601_FORMAT);
-        return amzDate;
-    }
-
-    private isolated function generateSignature(string payload, string timestampCreated, string action)
-        returns string|error {
-        string actionName = action;
-        string signaturemethod = "HmacSHA256";
-        string signatureversion = "2";
-        string 'version = VERSION_NUMBER;
-        string stringToSign = "GET" + NEW_LINE + "sdb.amazonaws.com" + NEW_LINE + ENDPOINT + NEW_LINE + "AWSAccessKeyId=" + self.accessKeyId + "&Action=" + actionName + "&SignatureMethod=" + signaturemethod + "&SignatureVersion=" + signatureversion + "&Timestamp=" + timestampCreated + "&Version=" + 'version;
-        string signature = array:toBase64(check crypto:hmacSha256(stringToSign
-            .toBytes(), (self.secretAccessKey).toBytes())).toLowerAscii();
-        return signature;
-    }
-
-    private isolated function generateRequest(string payload, string timestamp, string signatureString, string action)
-            returns http:Request|error {
-        map<string> parameters = {};
-        parameters["AWSAccessKeyId"] = self.accessKeyId;
-        parameters["Version"] = VERSION_NUMBER;
-        parameters["Signature"] = signatureString;
-        parameters["SignatureVersion"] = "2";
-        parameters["SignatureMethod"] = "HmacSHA256";
-        parameters["Timestamp"] = timestamp;
-        string parameterQuery = buildPayload(parameters);
-        string requestParameters =  payload + "&" +parameterQuery;
-        map<string> headers = {};    
-        headers["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8"; 
-        headers["Host"] = "sdb.amazonaws.com"; 
-        string msgBody = requestParameters;
-        http:Request request = new;  
-        request.setTextPayload(msgBody);      
-        foreach var [k,v] in headers.entries() {
-            request.setHeader(k, v);
-        }
-        return request;
-    }
-
-    private isolated function generateQueryParameters(string payload, string timestamp, string signatureString)
-            returns string|error {
-        map<string> parameters = {};
-
-        string parameterQuery = buildPayload(parameters);      
-        return parameterQuery;
     }
 }

@@ -58,13 +58,13 @@ function testSelect() returns error? {
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testSelect]}
+@test:Config{dependsOn: [testGetAttributes]}
 function testDeleteDomain() returns error? {
     DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
     log:printInfo(response.toString());
 }
 
-@test:Config{dependsOn: [testDeleteDomain]}
+@test:Config{dependsOn: [testSelect]}
 function testGetAttributes() returns error? {
     GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
     log:printInfo(response.toString());
