@@ -22,16 +22,16 @@ This connector provides operations for connecting and interacting with Amazon Si
 2. Download and install [Ballerina Swan Lake](https://ballerina.io/). 
 
 ### Building the source
-Execute the following commands to build from the source:
 
+Execute the commands below to build from the source:
 * To build the package:
-    ```    
-    bal build -c ./simpledb
-    ```
-* To build the package without tests:
-    ```
-    bal build -c --skip-tests ./simpledb
-    ```
+   ```   
+   bal build ./ballerina
+   ```
+* To run tests after build:
+   ```
+   bal test ./ballerina
+   ```
 ## Contributing to Ballerina
 As an open source project, Ballerina welcomes contributions from the community. 
 
