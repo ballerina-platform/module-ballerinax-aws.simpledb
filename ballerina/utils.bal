@@ -17,6 +17,7 @@
 import ballerina/crypto;
 import ballerina/jballerina.java;
 import ballerina/lang.array;
+import ballerina/lang.regexp;
 import ballerina/http;
 import ballerina/time;
 import ballerina/url;
