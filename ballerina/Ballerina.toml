@@ -2,7 +2,7 @@
 distribution = "2201.8.0"
 org = "ballerinax"
 name = "aws.simpledb"
-version = "3.0.0"
+version = "2.2.0"
 license= ["Apache-2.0"]
 authors = ["Ballerina"]
 keywords= ["IT Operations/Databases", "Cost/Freemium", "Vendor/Amazon"]
