@@ -18,7 +18,6 @@ import ballerina/crypto;
 import ballerina/jballerina.java;
 import ballerina/lang.array;
 import ballerina/http;
-import ballerina/regex;
 import ballerina/time;
 import ballerina/url;
 
@@ -112,9 +111,9 @@ isolated function getAttributeName(string attribute) returns string {
 
 isolated function urlEncode(string rawValue) returns string|error {
     string encoded = check url:encode(rawValue, UTF_8);
-    encoded = regex:replaceAll(encoded, "\\+", "%20");
-    encoded = regex:replaceAll(encoded, "\\*", "%2A");
-    encoded = regex:replaceAll(encoded, "%7E", "~");
+    encoded = re `\+`.replaceAll(encoded, "%20");
+    encoded = re `\*`.replaceAll(encoded, "%2A");
+    encoded = re `%7E`.replaceAll(encoded, "~");
     return encoded;
 }
 
