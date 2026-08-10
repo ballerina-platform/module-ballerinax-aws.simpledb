@@ -1,15 +1,8 @@
 # Compiled class file
 *.class
-*.balx
 
 # Log file
 *.log
-
-#conf file
-ballerina.conf
-
-#lock file
-Ballerina.lock
 
 # BlueJ files
 *.ctxt
@@ -19,6 +12,7 @@ Ballerina.lock
 
 # Package Files #
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -29,44 +23,26 @@ Ballerina.lock
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-# Ignore everything in this directory
-target
-.classpath
-.settings
-.project
-*.iml
-*.iws
-*.ipr
-.idea
-.m2
-.vscode/
-*.ballerina/
-
-# Ignore ballerina files
-temp.bal.ballerina/
-target/
-.DS_Store
-Config.toml
-resources/Client_functions.json
-modules/simpledb/resources
-
-# Ballerina configuartion file
-Config.toml
-
-# Target folder of ballerina project
-/target
-
-# json files created inside resources folder
-/modules
-
-# resource folder in tests folder
-/tests/resources
-
-# resources folder
-/resources/*.json
-
 # idea files
 *.idea
 
 # .ballerina files
 *.ballerina
+.DS_Store
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directories
+build
+target
+
+# Ballerina configuartion file
+Config.toml
+/ballerina/docker.env
+
+# Environment files
+*.env
+
+# Ignore installers and archives
+*.deb

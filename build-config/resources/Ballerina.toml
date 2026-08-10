@@ -2,10 +2,10 @@
 distribution = "2201.12.0"
 org = "ballerinax"
 name = "aws.simpledb"
-version = "3.0.0"
+version = "@toml.version@"
 license = ["Apache-2.0"]
 authors = ["Ballerina"]
-keywords = ["IT Operations/Database", "Cost/Freemium", "Vendor/Amazon", "Area/Database", "Type/Connector"]
+keywords = ["Operations/Database", "Cost/Freemium", "Vendor/Amazon", "Area/Database", "Type/Connector"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-aws.simpledb"
 icon = "icon.png"
 

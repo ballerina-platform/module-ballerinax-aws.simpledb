@@ -1,15 +1,16 @@
-# Ballerina Amazon SimpleDB Connector
-
-[![Build](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/actions/workflows/ci.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.simpledb/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.simpledb)
-[![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.simpledb.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/commits/main)
-[![GitHub Issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-library/module/aws.simpledb.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-library/labels/module%2Faws.simpledb)
-
 ## Overview
 
-[Amazon SimpleDB](https://aws.amazon.com/simpledb/) is a highly available NoSQL data store that offloads the work of database administration. Data is organised into *domains*, each holding *items* identified by a name, and each item holding *attributes* that are name–value pairs. Every value is indexed automatically, so a domain can be queried with a SQL-like `select` expression without defining indexes up front.
+[Amazon SimpleDB](https://aws.amazon.com/simpledb/) is a highly available NoSQL data store that offloads the work of database administration. Data is organised into *domains*, each holding *items* identified by a name, and each item holding *attributes* that are name–value pairs. Attributes are schemaless — different items in the same domain may carry entirely different attributes — and every value is indexed automatically, so a domain can be queried with a SQL-like `select` expression without defining indexes up front.
 
 The `ballerinax/aws.simpledb` package offers APIs to connect and interact with the [Amazon SimpleDB API](https://docs.aws.amazon.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API.html) endpoints.
+
+### Key features
+
+- Domain management: `createDomain`, `listDomains`, `getDomainMetaData`, and `deleteDomain`
+- Item and attribute operations: `putAttributes`, `getAttributes`, `deleteAttributes`, and the SQL-like `select`
+- Flexible credential configuration: static keys, AWS credentials file profiles, STS assume-role, web identity (OIDC), IAM Identity Center (SSO), an external credential process, or the default AWS credential provider chain (EKS Pod Identity, ECS task roles, EC2 instance profiles, environment variables)
+- Automatic refresh of expiring temporary credentials
+- Endpoint resolution from the AWS SDK's endpoint metadata, including custom endpoint overrides
 
 ## Setup guide
 
@@ -70,7 +71,7 @@ To use the `aws.simpledb` connector in your Ballerina project, modify the `.bal`
 
 ### Step 1: Import the connector
 
-Import the `ballerinax/aws.simpledb` and `ballerinax/aws` packages into your Ballerina project.
+Import the `ballerinax/aws.simpledb` package into your Ballerina project.
 
 ```ballerina
 import ballerinax/aws;
@@ -127,10 +128,17 @@ simpledb:Client simpleDb = check new ({
 
 ### Step 3: Invoke the connector operation
 
+Now, utilize the available connector operations.
+
 ```ballerina
 public function main() returns error? {
     _ = check simpleDb->createDomain("products");
+
     _ = check simpleDb->putAttributes("products", "item-1", {name: "colour", value: "blue"});
+
+    simpledb:GetAttributesResponse|xml attributes =
+        check simpleDb->getAttributes("products", "item-1", true);
+    io:println(attributes);
 
     simpledb:SelectResponse|xml result =
         check simpleDb->'select("select * from products where colour = 'blue'", true);
@@ -139,6 +147,8 @@ public function main() returns error? {
 ```
 
 ### Step 4: Run the Ballerina application
+
+Use the following command to compile and run the Ballerina program.
 
 ```bash
 bal run
@@ -153,76 +163,3 @@ The `aws.simpledb` connector provides practical examples illustrating usage in v
 
 2. [Product catalogue](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/tree/main/examples/product-catalogue)
    This example shows how to store item attributes and query them back with a `select` expression.
-
-## Build from the source
-
-### Prerequisites
-
-1. Download and install Java SE Development Kit (JDK) version 21. You can download it from either of the following sources:
-
-    * [Oracle JDK](https://www.oracle.com/java/technologies/downloads/)
-    * [OpenJDK](https://adoptium.net/)
-
-   > **Note:** After installation, remember to set the `JAVA_HOME` environment variable to the directory where JDK was installed.
-
-2. Download and install [Ballerina Swan Lake](https://ballerina.io/).
-
-3. Download and install [Docker](https://www.docker.com/get-started).
-
-   > **Note**: Ensure that the Docker daemon is running before executing any tests.
-
-### Build options
-
-Execute the commands below to build from the source.
-
-1. To build the package:
-   ```bash
-   ./gradlew clean build
-   ```
-
-2. To run the tests:
-   ```bash
-   ./gradlew clean test
-   ```
-
-3. To build the without the tests:
-   ```bash
-   ./gradlew clean build -x test
-   ```
-
-4. To debug package with a remote debugger:
-   ```bash
-   ./gradlew clean build -Pdebug=<port>
-   ```
-
-5. To debug with the Ballerina language:
-   ```bash
-   ./gradlew clean build -PbalJavaDebug=<port>
-   ```
-
-6. Publish the generated artifacts to the local Ballerina Central repository:
-    ```bash
-    ./gradlew clean build -PpublishToLocalCentral=true
-    ```
-
-7. Publish the generated artifacts to the Ballerina Central repository:
-   ```bash
-   ./gradlew clean build -PpublishToCentral=true
-   ```
-
-## Contribute to Ballerina
-
-As an open-source project, Ballerina welcomes contributions from the community.
-
-For more information, go to the [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
-
-## Code of conduct
-
-All the contributors are encouraged to read the [Ballerina Code of Conduct](https://ballerina.io/code-of-conduct).
-
-## Useful links
-
-* For more information go to the [`aws.simpledb` package](https://central.ballerina.io/ballerinax/aws.simpledb/latest).
-* For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).
-* Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
-* Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.

@@ -1,0 +1,4 @@
+[package]
+org = "wso2"
+name = "domain_management"
+version = "0.1.0"

@@ -14,20 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/test;
 import ballerina/os;
+import ballerina/test;
+import ballerinax/aws;
 
 configurable string accessKeyId = os:getEnv("ACCESS_KEY_ID");
 configurable string secretAccessKey = os:getEnv("SECRET_ACCESS_KEY");
+configurable string sessionToken = os:getEnv("SESSION_TOKEN");
 configurable string region = os:getEnv("REGION");
 
-AwsCredentials awsCredentials = {
-    accessKeyId: accessKeyId,
-    secretAccessKey: secretAccessKey
-};
-
 ConnectionConfig config = {
-    awsCredentials: awsCredentials
+    auth: sessionToken == "" ? {accessKeyId, secretAccessKey} : {accessKeyId, secretAccessKey, sessionToken},
+    region: region == "" ? aws:US_EAST_1 : region
 };
 
 Client amazonSimpleDBClient = check new (config);
