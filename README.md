@@ -130,7 +130,7 @@ simpledb:Client simpleDb = check new ({
 ```ballerina
 public function main() returns error? {
     _ = check simpleDb->createDomain("products");
-    _ = check simpleDb->putAttributes("products", "item-1", {name: "colour", value: "blue"});
+    _ = check simpleDb->putAttributes("products", "item-1", [{name: "colour", value: "blue"}]);
 
     simpledb:SelectResponse|xml result =
         check simpleDb->'select("select * from products where colour = 'blue'", true);

@@ -134,7 +134,7 @@ Now, utilize the available connector operations.
 public function main() returns error? {
     _ = check simpleDb->createDomain("products");
 
-    _ = check simpleDb->putAttributes("products", "item-1", {name: "colour", value: "blue"});
+    _ = check simpleDb->putAttributes("products", "item-1", [{name: "colour", value: "blue"}]);
 
     simpledb:GetAttributesResponse|xml attributes =
         check simpleDb->getAttributes("products", "item-1", true);

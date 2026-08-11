@@ -290,6 +290,9 @@ dependencies = [
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "uuid", moduleName = "uuid"}
+]
 
 [[package]]
 org = "ballerinai"
@@ -332,6 +335,7 @@ name = "domain_management"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "uuid"},
 	{org = "ballerinax", name = "aws.simpledb"}
 ]
 modules = [

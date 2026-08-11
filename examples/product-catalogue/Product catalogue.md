@@ -10,24 +10,27 @@ attribute value is indexed on write, so it is queryable without declaring an ind
 
 ## Prerequisites
 
-### 1. Setup AWS account
+## Prerequisites
 
-Refer to the [Setup guide](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/blob/main/README.md#setup-guide)
-to obtain the necessary credentials (access key ID, secret access key, region).
+- AWS Account with SimpleDB access
+- AWS Access Key ID and Secret Access Key
+- Ballerina Swan Lake 2201.12.0 or later
 
-The IAM user needs `sdb:CreateDomain`, `sdb:PutAttributes`, `sdb:GetAttributes`, `sdb:Select`, and
-`sdb:DeleteAttributes`.
+## Configuration
 
-### 2. Configuration
-
-Create a `Config.toml` file in the example's root directory and provide your AWS account related configurations as
+Create a `Config.toml` file in the example's root directory and provide your AWS account-related configurations as
 follows:
 
 ```toml
 accessKeyId = "<AWS_ACCESS_KEY_ID>"
 secretAccessKey = "<AWS_SECRET_ACCESS_KEY>"
 region = "us-east-1"
+domainName = "<DOMAIN_RESERVED_FOR_THIS_EXAMPLE>"
 ```
+
+`domainName` must identify a domain reserved for this example. The example creates the domain if it is absent, writes
+an attribute to the item `sku-1024` in it, and then deletes that attribute — so pointing it at a domain holding real
+data will modify that data. There is no default: the example fails at startup if `domainName` is not configured.
 
 ## Run the example
 

@@ -4,20 +4,22 @@ This use case shows how the Amazon SimpleDB API can be used to manage domains â€
 SimpleDB. The example creates a domain, reads back its metadata to confirm it is empty, lists the domains in the
 account, and finally deletes it.
 
-Both `createDomain` and `deleteDomain` are idempotent, so the example can be run repeatedly without special handling.
+The listing step prints only the first page of domains. `listDomains` returns a `nextToken` when more pages remain, but
+it does not currently accept one, so the example cannot request the pages that follow.
+
+Each run creates its own domain, named `inventory-<uuid>`, and deletes only that domain when it finishes. Nothing that
+already exists in the account is read or removed, so the example is safe to run repeatedly and against an account
+holding real data.
 
 ## Prerequisites
 
-### 1. Setup AWS account
+- AWS Account with SimpleDB access
+- AWS Access Key ID and Secret Access Key
+- Ballerina Swan Lake 2201.12.0 or later
 
-Refer to the [Setup guide](https://github.com/ballerina-platform/module-ballerinax-aws.simpledb/blob/main/README.md#setup-guide)
-to obtain the necessary credentials (access key ID, secret access key, region).
+## Configuration
 
-The IAM user needs `sdb:CreateDomain`, `sdb:DomainMetadata`, `sdb:ListDomains`, and `sdb:DeleteDomain`.
-
-### 2. Configuration
-
-Create a `Config.toml` file in the example's root directory and provide your AWS account related configurations as
+Create a `Config.toml` file in the example's root directory and provide your AWS account-related configurations as
 follows:
 
 ```toml

@@ -15,13 +15,12 @@
 // under the License.
 
 import ballerina/io;
+import ballerina/uuid;
 import ballerinax/aws.simpledb;
 
 configurable string accessKeyId = ?;
 configurable string secretAccessKey = ?;
 configurable string region = "us-east-1";
-
-const string DOMAIN_NAME = "inventory";
 
 public function main() returns error? {
     simpledb:Client simpleDb = check new ({
@@ -29,15 +28,18 @@ public function main() returns error? {
         region: region
     });
 
-    // Creating a domain is idempotent, so this is safe to run repeatedly.
-    simpledb:CreateDomainResponse|xml created = check simpleDb->createDomain(DOMAIN_NAME);
+    // Each run works in a domain of its own, so the example never reads or
+    // deletes a domain that already exists in the account.
+    string domainName = string `inventory-${uuid:createType4AsString()}`;
+
+    simpledb:CreateDomainResponse|xml created = check simpleDb->createDomain(domainName);
     if created is xml {
         return error(string `Failed to create the domain: ${created.toString()}`);
     }
-    io:println(string `Created the domain '${DOMAIN_NAME}'.`);
+    io:println(string `Created the domain '${domainName}'.`);
 
     // A newly created domain holds no items, so the counts start at zero.
-    simpledb:DomainMetaDataResponse|xml metadata = check simpleDb->getDomainMetaData(DOMAIN_NAME);
+    simpledb:DomainMetaDataResponse|xml metadata = check simpleDb->getDomainMetaData(domainName);
     if metadata is xml {
         return error(string `Failed to read the domain metadata: ${metadata.toString()}`);
     }
@@ -50,10 +52,11 @@ public function main() returns error? {
     }
     io:println("Domains in this account: ", domains.listDomainsResult.domainNames);
 
-    // Deleting a domain removes every item it holds.
-    simpledb:DeleteDomainResponse|xml deleted = check simpleDb->deleteDomain(DOMAIN_NAME);
+    // Clean up only the domain this run created; deleting a domain removes every
+    // item it holds.
+    simpledb:DeleteDomainResponse|xml deleted = check simpleDb->deleteDomain(domainName);
     if deleted is xml {
         return error(string `Failed to delete the domain: ${deleted.toString()}`);
     }
-    io:println(string `Deleted the domain '${DOMAIN_NAME}'.`);
+    io:println(string `Deleted the domain '${domainName}'.`);
 }

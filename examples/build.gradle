@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,11 +23,6 @@ apply plugin: 'java'
 def graalvmFlag = ""
 
 task testExamples {
-    gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":aws.simpledb-examples:build")) {
-            testExamples.enabled = false
-        }
-    }
     if (project.hasProperty("balGraalVMTest")) {
         graalvmFlag = "--graalvm"
     }
@@ -50,6 +45,13 @@ task testExamples {
 }
 
 task buildExamples {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":aws.simpledb-examples:build")) {
+            testExamples.enabled = false
+        } else {
+            buildExamples.enabled = false
+        }
+    }
     doLast {
         try {
             exec {

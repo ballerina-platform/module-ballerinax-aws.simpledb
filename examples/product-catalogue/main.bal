@@ -21,7 +21,7 @@ configurable string accessKeyId = ?;
 configurable string secretAccessKey = ?;
 configurable string region = "us-east-1";
 
-const string DOMAIN_NAME = "products";
+configurable string domainName = ?;
 
 public function main() returns error? {
     simpledb:Client simpleDb = check new ({
@@ -29,12 +29,12 @@ public function main() returns error? {
         region: region
     });
 
-    _ = check simpleDb->createDomain(DOMAIN_NAME);
+    _ = check simpleDb->createDomain(domainName);
 
     // Items are schemaless: each one carries only the attributes it is given, and
     // the item is created by the first `putAttributes` call that names it.
     simpledb:PutAttributesResponse|xml stored =
-        check simpleDb->putAttributes(DOMAIN_NAME, "sku-1024", {name: "colour", value: "blue"});
+        check simpleDb->putAttributes(domainName, "sku-1024", [{name: "colour", value: "blue"}]);
     if stored is xml {
         return error(string `Failed to store the attribute: ${stored.toString()}`);
     }
@@ -43,7 +43,7 @@ public function main() returns error? {
     // A consistent read reflects every write that completed before it, which a
     // read immediately after a write needs.
     simpledb:GetAttributesResponse|xml attributes =
-        check simpleDb->getAttributes(DOMAIN_NAME, "sku-1024", true);
+        check simpleDb->getAttributes(domainName, "sku-1024", true);
     if attributes is xml {
         return error(string `Failed to read the attributes: ${attributes.toString()}`);
     }
@@ -51,7 +51,9 @@ public function main() returns error? {
 
     // Every attribute value is indexed on write, so it can be queried without
     // declaring an index. String literals in a select expression are single quoted.
-    string selectExpression = string `select * from ${DOMAIN_NAME} where colour = 'blue'`;
+    // The domain name is backtick quoted, since a configured name may contain
+    // characters that SimpleDB requires to be quoted in a select expression.
+    string selectExpression = "select * from `" + domainName + "` where colour = 'blue'";
     simpledb:SelectResponse|xml matches = check simpleDb->'select(selectExpression, true);
     if matches is xml {
         return error(string `Failed to run the select expression: ${matches.toString()}`);
@@ -59,7 +61,7 @@ public function main() returns error? {
     io:println("Blue products: ", matches.selectResult.items);
 
     simpledb:DeleteAttributesResponse|xml removed =
-        check simpleDb->deleteAttributes(DOMAIN_NAME, "sku-1024", {name: "colour", value: "blue"});
+        check simpleDb->deleteAttributes(domainName, "sku-1024", [{name: "colour", value: "blue"}]);
     if removed is xml {
         return error(string `Failed to delete the attribute: ${removed.toString()}`);
     }

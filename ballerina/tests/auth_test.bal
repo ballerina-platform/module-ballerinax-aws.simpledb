@@ -87,11 +87,36 @@ function testSignedQueryWithTemporaryCredentials() returns error? {
 
 @test:Config {}
 function testAttributeParameters() returns error? {
-    map<string> parameters = check setAttributes({}, {name: "colour/shade", value: "dark blue"});
+    map<string> parameters = check setAttributes({}, [{name: "colour/shade", value: "dark blue"}]);
     // The attribute's own name and value, not the record's field names.
     test:assertEquals(parameters["Attribute.1.Name"], "colour%2Fshade");
     test:assertEquals(parameters["Attribute.1.Value"], "dark%20blue");
     test:assertEquals(parameters.length(), 2);
+}
+
+@test:Config {}
+function testMultipleAttributeParameters() returns error? {
+    map<string> parameters = check setAttributes({}, [
+        {name: "colour", value: "blue"},
+        {name: "size", value: "large"},
+        {name: "note", value: "on sale"}
+    ]);
+    // `Attribute.N` is one-based and follows the array order.
+    test:assertEquals(parameters["Attribute.1.Name"], "colour");
+    test:assertEquals(parameters["Attribute.1.Value"], "blue");
+    test:assertEquals(parameters["Attribute.2.Name"], "size");
+    test:assertEquals(parameters["Attribute.2.Value"], "large");
+    test:assertEquals(parameters["Attribute.3.Name"], "note");
+    test:assertEquals(parameters["Attribute.3.Value"], "on%20sale");
+    test:assertEquals(parameters.length(), 6);
+}
+
+@test:Config {}
+function testNoAttributeParameters() returns error? {
+    // An empty array adds nothing, which is how `deleteAttributes` asks SimpleDB
+    // to delete the whole item.
+    map<string> parameters = check setAttributes({[ACTION]: "DeleteAttributes"}, []);
+    test:assertEquals(parameters.length(), 1);
 }
 
 @test:Config {}
@@ -100,7 +125,7 @@ function testAttributeIsSigned() returns error? {
         accessKeyId: TEST_ACCESS_KEY_ID,
         secretAccessKey: TEST_SECRET_ACCESS_KEY
     });
-    map<string> parameters = check setAttributes({[ACTION]: "PutAttributes"}, {name: "colour", value: "blue"});
+    map<string> parameters = check setAttributes({[ACTION]: "PutAttributes"}, [{name: "colour", value: "blue"}]);
     string query = check generateQueryParameters(parameters, provider, TEST_HOST);
     // The attribute parameters sort ahead of the signature, so they are covered by it.
     int? attributeIndex = query.indexOf("Attribute.1.Name=colour");
@@ -114,4 +139,23 @@ function testEndpointResolution() {
     test:assertEquals(aws:resolveEndpointHost(SERVICE_NAME, aws:US_EAST_1), "sdb.amazonaws.com");
     test:assertEquals(aws:resolveEndpointHost(SERVICE_NAME, aws:US_WEST_2), TEST_HOST);
     test:assertEquals(aws:resolveEndpoint(SERVICE_NAME, aws:EU_WEST_1), "https://sdb.eu-west-1.amazonaws.com");
+}
+
+@test:Config {}
+function testTransportFailureIsModuleError() returns error? {
+    // An unroutable host, so the request fails in transport rather than at AWS.
+    Client simpleDb = check new ({
+        auth: {accessKeyId: TEST_ACCESS_KEY_ID, secretAccessKey: TEST_SECRET_ACCESS_KEY},
+        region: aws:US_EAST_1,
+        endpoint: {customEndpoint: "http://localhost:1"},
+        timeout: 5
+    });
+    CreateDomainResponse|xml|error response = simpleDb->createDomain("test");
+    // The transport failure has to be matchable as the module's own error type,
+    // and it has to keep the underlying failure as its cause.
+    test:assertTrue(response is Error, (response is error ? response.toString() : "not an error"));
+    if response is Error {
+        test:assertEquals(response.message(), "Error occurred while invoking the REST API.");
+        test:assertTrue(response.cause() is error, "cause was dropped");
+    }
 }

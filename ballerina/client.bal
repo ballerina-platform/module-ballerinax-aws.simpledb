@@ -160,9 +160,9 @@ public isolated client class Client {
     #
     # + domainName - Name of domain
     # + itemName - Name of item
-    # + attributes - Attribute to create
+    # + attributes - Attributes to create
     # + return - `PutAttributesResponse` on success else an `error`
-    remote isolated function putAttributes(string domainName, string itemName, Attribute attributes) returns PutAttributesResponse|xml|error {
+    remote isolated function putAttributes(string domainName, string itemName, Attribute[] attributes) returns PutAttributesResponse|xml|error {
         map<string> parameters = {};
         parameters[ACTION] = check urlEncode("PutAttributes");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
@@ -174,13 +174,14 @@ public isolated client class Client {
         return putAttributesResponse;
     }
 
-    # Delete attributes in an item.
+    # Delete attributes in an item. When `attributes` is empty, the whole item is
+    # deleted.
     #
     # + domainName - Name of domain
     # + itemName - Name of item
-    # + attributes - Attribute to delete
+    # + attributes - Attributes to delete
     # + return - `DeleteAttributesResponse` on success else an `error`
-    remote isolated function deleteAttributes(string domainName, string itemName, Attribute attributes) returns DeleteAttributesResponse|xml|error {
+    remote isolated function deleteAttributes(string domainName, string itemName, Attribute[] attributes) returns DeleteAttributesResponse|xml|error {
         map<string> parameters = {};
         parameters[ACTION] = check urlEncode("DeleteAttributes");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);

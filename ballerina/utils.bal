@@ -60,25 +60,29 @@ isolated function generateRequest() returns http:Request {
     return request;
 }
 
-isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request|error request, string query) returns xml|error {
-    if request is http:Request {
-        http:Response|error httpResponse = amazonSimpleDBClient->post(string `/?${query}`, request);
-        return handleResponse(httpResponse);
-    } else {
-        return error("Error has occurred during request");
+isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request request, string query) returns xml|error {
+    http:Response|error httpResponse = amazonSimpleDBClient->post(string `/?${query}`, request);
+    if httpResponse is error {
+        return error Error("Error occurred while invoking the REST API.", httpResponse);
     }
+    return handleResponse(httpResponse);
 }
 
-# Adds an attribute to the query parameters, in the `Attribute.N.Name` and
-# `Attribute.N.Value` form the SimpleDB query API expects. The values are
-# encoded here because the parameters are signed in their encoded form.
+# Adds the attributes to the query parameters, in the `Attribute.N.Name` and
+# `Attribute.N.Value` form the SimpleDB query API expects, where `N` is the
+# one-based position of the attribute. The values are encoded here because the
+# parameters are signed in their encoded form.
 #
-# + parameters - Parameter map to add the attribute to
-# + attribute - The attribute to add
-# + return - The updated parameter map, or an `error` if the attribute cannot be encoded
-isolated function setAttributes(map<string> parameters, Attribute attribute) returns map<string>|error {
-    parameters["Attribute.1.Name"] = check urlEncode(attribute.name);
-    parameters["Attribute.1.Value"] = check urlEncode(attribute.value);
+# + parameters - Parameter map to add the attributes to
+# + attributes - The attributes to add
+# + return - The updated parameter map, or an `error` if an attribute cannot be encoded
+isolated function setAttributes(map<string> parameters, Attribute[] attributes) returns map<string>|error {
+    foreach int index in 0 ..< attributes.length() {
+        Attribute attribute = attributes[index];
+        string attributePrefix = string `Attribute.${index + 1}.`;
+        parameters[attributePrefix + "Name"] = check urlEncode(attribute.name);
+        parameters[attributePrefix + "Value"] = check urlEncode(attribute.value);
+    }
     return parameters;
 }
 
@@ -86,16 +90,12 @@ isolated function setAttributes(map<string> parameters, Attribute attribute) ret
 #
 # + httpResponse - Http response or error
 # + return - If successful returns `xml` response. Else returns error
-isolated function handleResponse(http:Response|error httpResponse) returns xml|error {
-    if httpResponse is http:Response {
-        if httpResponse.statusCode == http:STATUS_NO_CONTENT {
-            return error ResponseHandleFailed("No Content was sent with the response.");
-        }
-        var xmlResponse = httpResponse.getXmlPayload();
-        return xmlResponse;
-    } else {
-        return error("Error occurred while invoking the REST API.", httpResponse);
+isolated function handleResponse(http:Response httpResponse) returns xml|error {
+    if httpResponse.statusCode == http:STATUS_NO_CONTENT {
+        return error ResponseHandleFailed("No Content was sent with the response.");
     }
+    var xmlResponse = httpResponse.getXmlPayload();
+    return xmlResponse;
 }
 
 isolated function urlEncode(string rawValue) returns string|error {

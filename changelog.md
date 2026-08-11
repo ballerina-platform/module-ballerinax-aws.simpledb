@@ -23,6 +23,10 @@ It contains breaking changes. See the "Migrating from 2.x" section below.
 - **[Breaking]** The `ConnectionConfig.region` field type changed from `string` to `aws:Region|string`, and
   it is now required. It previously defaulted to `"us-east-1"`, which was misleading because the value was
   never used — see the corresponding entry under "Fixed".
+- **[Breaking]** The `attributes` parameter of `putAttributes` and `deleteAttributes` is now an
+  `Attribute[]` rather than a single `Attribute`, so an item can be written or trimmed in one call as the
+  API allows — SimpleDB accepts up to 256 attributes per call. Passing an empty array to
+  `deleteAttributes` deletes the whole item.
 - Temporary credentials (STS assume-role, SSO, container and instance profiles) are now refreshed
   transparently by the credential provider, instead of the connector holding a single set of keys
   resolved at initialization time.

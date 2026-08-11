@@ -23,47 +23,85 @@ configurable string secretAccessKey = os:getEnv("SECRET_ACCESS_KEY");
 configurable string sessionToken = os:getEnv("SESSION_TOKEN");
 configurable string region = os:getEnv("REGION");
 
-ConnectionConfig config = {
-    auth: sessionToken == "" ? {accessKeyId, secretAccessKey} : {accessKeyId, secretAccessKey, sessionToken},
-    region: region == "" ? aws:US_EAST_1 : region
-};
+configurable boolean runLiveTests = os:getEnv("IS_LIVE_SERVER") == "true";
 
-Client amazonSimpleDBClient = check new (config);
+const string TEST_DOMAIN = "test";
+const string TEST_ITEM = "test-item";
+const string TEST_ATTRIBUTE_NAME = "colour";
+const string TEST_ATTRIBUTE_VALUE = "blue";
 
-@test:Config {}
+Client amazonSimpleDBClient = test:mock(Client);
+
+@test:BeforeGroups {value: ["live"]}
+function initLiveClient() returns error? {
+    if !runLiveTests {
+        return;
+    }
+    ConnectionConfig config = {
+        auth: sessionToken == "" ? {accessKeyId, secretAccessKey} : {accessKeyId, secretAccessKey, sessionToken},
+        region: region == "" ? aws:US_EAST_1 : region
+    };
+    amazonSimpleDBClient = check new (config);
+}
+
+@test:Config {enable: runLiveTests, groups: ["live"]}
 function testCreateDomain() returns error? {
-    CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain("test");
+    CreateDomainResponse|xml response = check amazonSimpleDBClient->createDomain(TEST_DOMAIN);
     assertForResponseErrors(response);
 }
 
-@test:Config {dependsOn: [testCreateDomain]}
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testCreateDomain]}
 function testListDomains() returns error? {
     ListDomainsResponse|xml response = check amazonSimpleDBClient->listDomains();
     assertForResponseErrors(response);
 }
 
-@test:Config {dependsOn: [testListDomains]}
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testListDomains]}
 function testGetDomainMetaData() returns error? {
-    DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData("test");
+    DomainMetaDataResponse|xml response = check amazonSimpleDBClient->getDomainMetaData(TEST_DOMAIN);
     assertForResponseErrors(response);
 }
 
-@test:Config {dependsOn: [testGetDomainMetaData]}
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testCreateDomain]}
+function testPutAttributes() returns error? {
+    PutAttributesResponse|xml response = check amazonSimpleDBClient->putAttributes(TEST_DOMAIN, TEST_ITEM,
+            [{name: TEST_ATTRIBUTE_NAME, value: TEST_ATTRIBUTE_VALUE}]);
+    assertForResponseErrors(response);
+}
+
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testPutAttributes]}
+function testGetAttributes() returns error? {
+    GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes(TEST_DOMAIN, TEST_ITEM, true);
+    assertForResponseErrors(response);
+    if response is GetAttributesResponse {
+        string attributes = response.getAttributesResult.attributes;
+        test:assertTrue(attributes.includes(TEST_ATTRIBUTE_NAME), attributes);
+        test:assertTrue(attributes.includes(TEST_ATTRIBUTE_VALUE), attributes);
+    }
+}
+
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testPutAttributes]}
 function testSelect() returns error? {
-    string selectExpression = "select output_list from test";
+    string selectExpression = string `select ${TEST_ATTRIBUTE_NAME} from ${TEST_DOMAIN}`;
     SelectResponse|xml response = check amazonSimpleDBClient->'select(selectExpression, true);
     assertForResponseErrors(response);
-}  
-
-@test:Config {dependsOn: [testGetAttributes]}
-function testDeleteDomain() returns error? {
-    DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain("test");
-    assertForResponseErrors(response);
 }
 
-@test:Config {dependsOn: [testSelect]}
-function testGetAttributes() returns error? {
-    GetAttributesResponse|xml response = check amazonSimpleDBClient->getAttributes("test", "output_list", true);
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testGetAttributes, testSelect]}
+function testDeleteAttributes() returns error? {
+    DeleteAttributesResponse|xml response = check amazonSimpleDBClient->deleteAttributes(TEST_DOMAIN, TEST_ITEM,
+            [{name: TEST_ATTRIBUTE_NAME, value: TEST_ATTRIBUTE_VALUE}]);
+    assertForResponseErrors(response);
+    GetAttributesResponse|xml readBack = check amazonSimpleDBClient->getAttributes(TEST_DOMAIN, TEST_ITEM, true);
+    if readBack is GetAttributesResponse {
+        test:assertFalse(readBack.getAttributesResult.attributes.includes(TEST_ATTRIBUTE_VALUE),
+                readBack.getAttributesResult.attributes);
+    }
+}
+
+@test:Config {enable: runLiveTests, groups: ["live"], dependsOn: [testDeleteAttributes, testGetDomainMetaData]}
+function testDeleteDomain() returns error? {
+    DeleteDomainResponse|xml response = check amazonSimpleDBClient->deleteDomain(TEST_DOMAIN);
     assertForResponseErrors(response);
 }
 
