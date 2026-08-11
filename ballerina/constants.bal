@@ -20,5 +20,6 @@ const DOMAIN_NAME = "DomainName";
 const ITEM_NAME = "ItemName";
 const CONSISTENT_READ = "ConsistentRead";
 const EMPTY_STRING = "";
+const NEW_LINE = "\n";
 const HMAC_SHA_256 = "HmacSHA256";
 const VERSION_NUMBER = "2009-04-15";

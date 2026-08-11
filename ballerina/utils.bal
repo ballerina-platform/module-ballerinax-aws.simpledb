@@ -121,7 +121,7 @@ isolated function updateAndSortParameters(map<string> parameters, auth:Credentia
 
 isolated function calculateStringToSignV2(map<string> parameters, string host) returns string|error {
     map<string> sortedParameters = sortParameters(parameters);
-    return string `POST\n${host.toLowerAscii()}\n/\n${buildPayload(sortedParameters)}`;
+    return string `POST${NEW_LINE}${host.toLowerAscii()}${NEW_LINE}/${NEW_LINE}${buildPayload(sortedParameters)}`;
 }
 
 isolated function buildPayload(map<string> parameters) returns string {
