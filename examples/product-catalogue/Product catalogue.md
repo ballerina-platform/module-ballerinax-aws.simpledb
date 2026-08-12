@@ -10,8 +10,6 @@ attribute value is indexed on write, so it is queryable without declaring an ind
 
 ## Prerequisites
 
-## Prerequisites
-
 - AWS Account with SimpleDB access
 - AWS Access Key ID and Secret Access Key
 - Ballerina Swan Lake 2201.12.0 or later
