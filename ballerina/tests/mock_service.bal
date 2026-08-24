@@ -27,6 +27,15 @@ const MOCK_SERVICE_PORT = 9090;
 // The endpoint the tests point the client at, through `endpoint.customEndpoint`.
 final string mockServiceUrl = string `http://localhost:${MOCK_SERVICE_PORT}`;
 
+// The credentials the mock accepts. The tests sign with these, and the mock
+// re-derives the signature with them to check the request was signed correctly.
+const MOCK_ACCESS_KEY_ID = "test";
+const MOCK_SECRET_ACCESS_KEY = "test";
+
+// The host the connector resolves the mock endpoint to, and therefore the host
+// that ends up in the string to sign.
+final string mockServiceHost = string `localhost:${MOCK_SERVICE_PORT}`;
+
 const SDB_NAMESPACE = "http://sdb.amazonaws.com/doc/2009-04-15/";
 const MOCK_REQUEST_ID = "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d";
 const MOCK_BOX_USAGE = "0.0000219907";
@@ -45,7 +54,7 @@ service on new http:Listener(MOCK_SERVICE_PORT) {
 
     isolated resource function post .(http:Request request) returns xml|http:BadRequest|error {
         map<string> parameters = queryParameters(request);
-        http:BadRequest? invalidRequest = validateSignedRequest(parameters);
+        http:BadRequest? invalidRequest = check validateSignedRequest(parameters);
         if invalidRequest is http:BadRequest {
             return invalidRequest;
         }
@@ -356,7 +365,7 @@ isolated function queryParameters(http:Request request) returns map<string> {
 
 // The service rejects a request that is not signed, or is signed the wrong way,
 // before it looks at the operation at all.
-isolated function validateSignedRequest(map<string> parameters) returns http:BadRequest? {
+isolated function validateSignedRequest(map<string> parameters) returns http:BadRequest|error? {
     foreach string required in REQUIRED_PARAMETERS {
         if !parameters.hasKey(required) {
             return awsError("MissingParameter", string `The request must contain the parameter ${required}.`);
@@ -373,6 +382,27 @@ isolated function validateSignedRequest(map<string> parameters) returns http:Bad
     }
     if !parameters.hasKey("Action") {
         return awsError("MissingParameter", "The request must contain the parameter Action.");
+    }
+    if parameters["AWSAccessKeyId"] != MOCK_ACCESS_KEY_ID {
+        return awsError("InvalidClientTokenId", "The AWS Access Key Id you provided does not exist in our records.");
+    }
+    return validateSignature(parameters);
+}
+
+// Re-derives the signature over everything the request actually carried, and
+// rejects the request when it does not match what arrived.
+isolated function validateSignature(map<string> parameters) returns http:BadRequest|error? {
+    // The query parameters arrive decoded, and are signed in their encoded form.
+    map<string> signedParameters = {};
+    foreach [string, string] [key, value] in parameters.entries() {
+        if key != "Signature" {
+            signedParameters[key] = check urlEncode(value);
+        }
+    }
+    string stringToSign = check calculateStringToSignV2(signedParameters, mockServiceHost);
+    if parameters["Signature"] != check sign(stringToSign, MOCK_SECRET_ACCESS_KEY) {
+        return awsError("SignatureDoesNotMatch",
+                "The request signature we calculated does not match the signature you provided.");
     }
     return;
 }

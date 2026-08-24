@@ -14,17 +14,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/http;
 import ballerina/os;
 import ballerina/test;
 import ballerina/uuid;
 import ballerinax/aws;
 
-// The operation tests run against the mock SimpleDB service by default, and
-// against the real service when `IS_LIVE_SERVER` is set.
 configurable boolean isLiveServer = os:getEnv("IS_LIVE_SERVER") == "true";
 
-configurable string accessKeyId = isLiveServer ? os:getEnv("ACCESS_KEY_ID") : "test";
-configurable string secretAccessKey = isLiveServer ? os:getEnv("SECRET_ACCESS_KEY") : "test";
+configurable string accessKeyId = isLiveServer ? os:getEnv("ACCESS_KEY_ID") : MOCK_ACCESS_KEY_ID;
+configurable string secretAccessKey = isLiveServer ? os:getEnv("SECRET_ACCESS_KEY") : MOCK_SECRET_ACCESS_KEY;
 configurable string sessionToken = isLiveServer ? os:getEnv("SESSION_TOKEN") : "";
 configurable string region = os:getEnv("REGION");
 
@@ -130,6 +129,18 @@ function testOperationOnMissingDomain() returns error? {
     if response is xml {
         test:assertEquals((response/<Errors>/<Error>/<Code>/*).toString(), "NoSuchDomain", response.toString());
     }
+}
+
+@test:Config {enable: !isLiveServer}
+function testMockRejectsTamperedSignature() returns error? {
+    http:Client rawClient = check new (mockServiceUrl);
+    string query = string `Action=ListDomains&AWSAccessKeyId=${MOCK_ACCESS_KEY_ID}&SignatureVersion=2` +
+        string `&SignatureMethod=HmacSHA256&Timestamp=2026-08-24T10%3A00%3A00Z&Version=2009-04-15` +
+        string `&Signature=bm90LXRoZS1yaWdodC1zaWduYXR1cmU%3D`;
+    http:Response response = check rawClient->post(string `/?${query}`, ());
+    test:assertEquals(response.statusCode, http:STATUS_BAD_REQUEST);
+    xml payload = check response.getXmlPayload();
+    test:assertEquals((payload/<Errors>/<Error>/<Code>/*).toString(), "SignatureDoesNotMatch", payload.toString());
 }
 
 function assertForResponseErrors(anydata response) {
