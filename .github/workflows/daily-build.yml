@@ -9,6 +9,7 @@ jobs:
     name: Run Daily Build Workflow
     if: ${{ github.repository_owner == 'ballerina-platform' }}
     uses: ballerina-platform/ballerina-library/.github/workflows/daily-build-connector-template.yml@main
-    secrets: inherit
+    secrets:
+      BALLERINA_BOT_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
     with:
       repo-name: module-ballerinax-aws.simpledb
