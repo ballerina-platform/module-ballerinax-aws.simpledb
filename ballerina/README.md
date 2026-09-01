@@ -81,14 +81,11 @@ import ballerinax/aws.simpledb;
 Create a new `simpledb:Client` by providing the region and authentication configurations.
 
 ```ballerina
-configurable string accessKeyId = ?;
-configurable string secretAccessKey = ?;
-
 simpledb:Client simpleDb = check new ({
     region: aws:US_EAST_1,
     auth: {
-        accessKeyId,
-        secretAccessKey
+      accessKeyId: "<AWS_ACCESS_KEY_ID>",
+      secretAccessKey: "<AWS_SECRET_ACCESS_KEY>"
     }
 });
 ```
@@ -139,7 +136,7 @@ simpledb:Client simpleDb = check new ({
 
 #### Default credential provider chain
 
-Resolves credentials automatically from the AWS SDK's default chain. This is the recommended option when the application runs on AWS infrastructure, since no long-lived credentials need to be stored with the application — and the only supported one where long-term access keys are unavailable (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA).
+Resolves credentials automatically from the AWS SDK's default chain. This is the recommended option when the application runs on AWS infrastructure (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA), since no long-lived credentials need to be stored with the application. The assume-role, web identity, SSO, and credential-process options below also work without long-term access keys, when you need to select a specific source explicitly.
 
 ```ballerina
 import ballerinax/aws.auth;
