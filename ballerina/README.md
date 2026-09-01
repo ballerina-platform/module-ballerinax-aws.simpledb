@@ -69,7 +69,7 @@ To use the `aws.simpledb` connector in your Ballerina project, modify the `.bal`
 
 ### Step 1: Import the connector
 
-Import the `ballerinax/aws.simpledb` package into your Ballerina project.
+Import the `ballerinax/aws.simpledb` and `ballerinax/aws` packages into your Ballerina project.
 
 ```ballerina
 import ballerinax/aws;
@@ -78,51 +78,17 @@ import ballerinax/aws.simpledb;
 
 ### Step 2: Instantiate a new connector
 
-The `simpledb:Client` accepts a `ConnectionConfig` with an `auth` field that supports every standard AWS credential source. Use explicit AWS credentials. Suitable for local development and environments where credentials are managed directly.
+Create a new `simpledb:Client` by providing the region and authentication configurations.
 
 ```ballerina
 simpledb:Client simpleDb = check new ({
+    region: aws:US_EAST_1,
     auth: {
-        accessKeyId: "<AWS_ACCESS_KEY_ID>",
-        secretAccessKey: "<AWS_SECRET_ACCESS_KEY>"
-    },
-    region: aws:US_EAST_1
+      accessKeyId: "<AWS_ACCESS_KEY_ID>",
+      secretAccessKey: "<AWS_SECRET_ACCESS_KEY>"
+    }
 });
 ```
-
-#### Alternative authentication methods
-
-##### Profile-based authentication
-
-You can use AWS profile-based authentication as an alternative to static credentials.
-
-```ballerina
-simpledb:Client simpleDb = check new ({
-   region: aws:US_EAST_1,
-   auth: {
-      profileName: "myAwsProfile",
-      credentialsFilePath: "/path/to/custom/credentials"
-   }
-});
-```
-
-##### Default credential provider chain
-
-The standard default credential provider chain, trying each of the following in order and taking the first source that yields credentials:
-
-1. Environment variables (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, and `AWS_WEB_IDENTITY_TOKEN_FILE` if set)
-2. The shared config/credentials file's active profile (`AWS_PROFILE`, or `default` if unset) — which may itself resolve via SSO, an external process, or a chained `AssumeRole` call, depending on that profile's configuration
-3. Container credentials (ECS/EKS)
-4. EC2 instance profile (IMDS)
-
-```ballerina
-simpledb:Client simpleDb = check new ({
-   region: aws:US_EAST_1,
-   auth: auth:DEFAULT_CREDENTIALS
-});
-```
-
-> **Note:** Beyond the three options above, the `auth` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). See the [`Ballerina AWS`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
 
 ### Step 3: Invoke the connector operation
 
@@ -151,6 +117,37 @@ Use the following command to compile and run the Ballerina program.
 ```bash
 bal run
 ```
+
+### Alternative authentication methods
+
+#### Profile-based authentication
+
+You can use AWS profile-based authentication as an alternative to static credentials.
+
+```ballerina
+simpledb:Client simpleDb = check new ({
+    region: aws:US_EAST_1,
+    auth: {
+        profileName: "myAwsProfile",
+        credentialsFilePath: "/path/to/custom/credentials"
+    }
+});
+```
+
+#### Default credential provider chain
+
+Resolves credentials automatically from the AWS SDK's default chain. This is the recommended option when the application runs on AWS infrastructure (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA), since no long-lived credentials need to be stored with the application. The assume-role, web identity, SSO, and credential-process options below also work without long-term access keys, when you need to select a specific source explicitly.
+
+```ballerina
+import ballerinax/aws.auth;
+
+simpledb:Client simpleDb = check new ({
+    region: aws:US_EAST_1,
+    auth: auth:DEFAULT_CREDENTIALS
+});
+```
+
+> **Note:** Beyond the three options above, the `auth` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). See the [`Ballerina AWS`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
 
 ## Examples
 
