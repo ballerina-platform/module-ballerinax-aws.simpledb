@@ -2,8 +2,6 @@
 
 [Amazon SimpleDB](https://aws.amazon.com/simpledb/) is a highly available NoSQL data store that offloads the work of database administration. Data is organised into *domains*, each holding *items* identified by a name, and each item holding *attributes* that are name–value pairs. Attributes are schemaless — different items in the same domain may carry entirely different attributes — and every value is indexed automatically, so a domain can be queried with a SQL-like `select` expression without defining indexes up front.
 
-The `ballerinax/aws.simpledb` package offers APIs to connect and interact with the [Amazon SimpleDB API](https://docs.aws.amazon.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API.html) endpoints.
-
 ### Key features
 
 - Domain management: `createDomain`, `listDomains`, `getDomainMetaData`, and `deleteDomain`
