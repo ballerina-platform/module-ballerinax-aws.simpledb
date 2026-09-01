@@ -15,72 +15,73 @@
 // under the License.
 
 import ballerina/crypto;
-import ballerina/jballerina.java;
-import ballerina/lang.array;
 import ballerina/http;
+import ballerina/lang.array;
 import ballerina/time;
 import ballerina/url;
+import ballerinax/aws.auth;
 
-isolated function generateQueryParameters(map<string> parameters, string accessKeyId, string secretAccessKey) returns string|error {
-    map<string> sortedParameters = check updateAndSortParameters(parameters, accessKeyId);
-    string formattedParameters = check calculateStringToSignV2(sortedParameters);
-    string signatureString = check sign(formattedParameters, secretAccessKey);
-    sortedParameters[SIGNATURE] = check urlEncode(signatureString);
+# Builds the signed query string for an operation. SimpleDB is signed with AWS
+# Signature Version 2 — it is the only signature version the service accepts —
+# so the signature travels as a query parameter rather than in an
+# `Authorization` header. The credentials are resolved (and, when temporary,
+# refreshed) by the `aws.auth` credential provider on every call.
+#
+# + parameters - The operation parameters, already URL encoded
+# + credentialProvider - Provider that resolves the signing credentials
+# + host - The endpoint host to sign against
+# + return - The signed query string, or an `error` if the credentials cannot be resolved or the request cannot be signed
+isolated function generateQueryParameters(map<string> parameters, auth:CredentialProvider credentialProvider,
+        string host) returns string|error {
+    auth:Credentials|auth:CredentialResolutionError credentials = credentialProvider.getCredentials();
+    if credentials is auth:CredentialResolutionError {
+        return error GenerateRequestFailed(
+                string `Error occurred while resolving the AWS credentials: ${credentials.message()}`, credentials);
+    }
+    map<string> sortedParameters = check updateAndSortParameters(parameters, credentials);
+    string formattedParameters = check calculateStringToSignV2(sortedParameters, host);
+    string signatureString = check sign(formattedParameters, credentials.secretAccessKey);
+    sortedParameters["Signature"] = check urlEncode(signatureString);
     return buildPayload(sortedParameters);
 }
 
-isolated function generateTimestamp() returns string|error {
-    [int, decimal] & readonly currentTime = time:utcNow();
-    string amzDate = check utcToString(currentTime, ISO8601_FORMAT);
-    return amzDate;
+# Generates the `Timestamp` parameter of a SigV2 request: the current moment as
+# an ISO 8601 instant in UTC, at second precision.
+#
+# + return - The formatted timestamp
+isolated function generateTimestamp() returns string {
+    time:Utc currentTime = time:utcNow();
+    return time:utcToString([currentTime[0], 0]);
 }
 
 isolated function generateRequest() returns http:Request {
     http:Request request = new;
-    request.setHeader(CONTENT_TYPE, SDB_CONTENT_TYPE);
+    request.setHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
     return request;
 }
 
-isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request|error request, string query) returns @tainted xml|error {
-    if request is http:Request {
-        http:Response|error httpResponse = amazonSimpleDBClient->post("/?" + query, request);
-        return handleResponse(httpResponse);
-    } else {
-        return error(REQUEST_ERROR);
+isolated function sendRequest(http:Client amazonSimpleDBClient, http:Request request, string query) returns xml|error {
+    http:Response|error httpResponse = amazonSimpleDBClient->post(string `/?${query}`, request);
+    if httpResponse is error {
+        return error Error("Error occurred while invoking the REST API.", httpResponse);
     }
+    return handleResponse(httpResponse);
 }
 
-isolated function validateCredentials(string accessKeyId, string secretAccessKey) returns error? {
-    if accessKeyId == EMPTY_STRING || secretAccessKey == EMPTY_STRING {
-        return error(EMPTY_CREDENTIALS);
-    }
-    return;
-}
-
-isolated function utcToString(time:Utc utc, string pattern) returns string|error {
-    [int, decimal] [epochSeconds, lastSecondFraction] = utc;
-    int nanoAdjustments = (<int>lastSecondFraction * 1000000000);
-    var instant = ofEpochSecond(epochSeconds, nanoAdjustments);
-    var zoneId = getZoneId(java:fromString(Z));
-    var zonedDateTime = atZone(instant, zoneId);
-    var dateTimeFormatter = ofPattern(java:fromString(pattern));
-    handle formatString = format(zonedDateTime, dateTimeFormatter);
-    return formatString.toBalString();
-}
-
-# Set attributes to a map of string to add as query parameters.
+# Adds the attributes to the query parameters, in the `Attribute.N.Name` and
+# `Attribute.N.Value` form the SimpleDB query API expects, where `N` is the
+# one-based position of the attribute. The values are encoded here because the
+# parameters are signed in their encoded form.
 #
-# + parameters - Parameter map
-# + attributes - Attribute to convert to a map of string
-# + return - If successful returns `map<string>` response. Else returns error
-isolated function setAttributes(map<string> parameters, Attribute attributes) returns map<string> {
-    int attributeNumber = 1;
-    map<anydata> attributeMap = <map<anydata>>attributes;
-    foreach var [key, value] in attributeMap.entries() {
-        string attributeName = getAttributeName(key);
-        parameters[ATTRIBUTE + FULL_STOP + attributeNumber.toString() + FULL_STOP + NAME] = attributeName.toString();
-        parameters[ATTRIBUTE + FULL_STOP + attributeNumber.toString() + FULL_STOP + VALUE] = value.toString();
-        attributeNumber = attributeNumber + 1;
+# + parameters - Parameter map to add the attributes to
+# + attributes - The attributes to add
+# + return - The updated parameter map, or an `error` if an attribute cannot be encoded
+isolated function setAttributes(map<string> parameters, Attribute[] attributes) returns map<string>|error {
+    foreach int index in 0 ..< attributes.length() {
+        Attribute attribute = attributes[index];
+        string attributePrefix = string `Attribute.${index + 1}.`;
+        parameters[attributePrefix + "Name"] = check urlEncode(attribute.name);
+        parameters[attributePrefix + "Value"] = check urlEncode(attribute.value);
     }
     return parameters;
 }
@@ -89,51 +90,38 @@ isolated function setAttributes(map<string> parameters, Attribute attributes) re
 #
 # + httpResponse - Http response or error
 # + return - If successful returns `xml` response. Else returns error
-isolated function handleResponse(http:Response|error httpResponse) returns @untainted xml|error {
-    if httpResponse is http:Response {
-        if httpResponse.statusCode == http:STATUS_NO_CONTENT {
-            return error ResponseHandleFailed(NO_CONTENT_SET_WITH_RESPONSE_MSG);
-        }
-        var xmlResponse = httpResponse.getXmlPayload();
-        return xmlResponse;
-    } else {
-        return error(ERROR_OCCURRED_WHILE_INVOKING_REST_API_MSG, httpResponse);
+isolated function handleResponse(http:Response httpResponse) returns xml|error {
+    if httpResponse.statusCode == http:STATUS_NO_CONTENT {
+        return error ResponseHandleFailed("No Content was sent with the response.");
     }
-}
-
-isolated function getAttributeName(string attribute) returns string {
-    string firstLetter = attribute.substring(0, 1);
-    string otherLetters = attribute.substring(1);
-    string upperCaseFirstLetter = firstLetter.toUpperAscii();
-    string attributeName = upperCaseFirstLetter + otherLetters;
-    return attributeName;
+    var xmlResponse = httpResponse.getXmlPayload();
+    return xmlResponse;
 }
 
 isolated function urlEncode(string rawValue) returns string|error {
-    string encoded = check url:encode(rawValue, UTF_8);
+    string encoded = check url:encode(rawValue, "UTF-8");
     encoded = re `\+`.replaceAll(encoded, "%20");
     encoded = re `\*`.replaceAll(encoded, "%2A");
     encoded = re `%7E`.replaceAll(encoded, "~");
     return encoded;
 }
 
-isolated function updateAndSortParameters(map<string> parameters, string accessKeyId) returns map<string>|error {
-    parameters[ACCESS_KEY] = check urlEncode(accessKeyId);
-    parameters[SIGNATURE_VERSION] = check urlEncode(TWO);
-    parameters[TIME_STAMP] = check urlEncode(check generateTimestamp());
-    parameters[SIGNATURE_METHOD] = check urlEncode(HMAC_SHA_256);
-    parameters[VERSION] = check urlEncode(VERSION_NUMBER);
+isolated function updateAndSortParameters(map<string> parameters, auth:Credentials credentials) returns map<string>|error {
+    parameters["AWSAccessKeyId"] = check urlEncode(credentials.accessKeyId);
+    string? sessionToken = credentials?.sessionToken;
+    if sessionToken is string {
+        parameters["SecurityToken"] = check urlEncode(sessionToken);
+    }
+    parameters["SignatureVersion"] = check urlEncode("2");
+    parameters["Timestamp"] = check urlEncode(generateTimestamp());
+    parameters["SignatureMethod"] = check urlEncode(HMAC_SHA_256);
+    parameters["Version"] = check urlEncode(VERSION_NUMBER);
     return sortParameters(parameters);
 }
 
-isolated function calculateStringToSignV2(map<string> parameters) returns string|error {
+isolated function calculateStringToSignV2(map<string> parameters, string host) returns string|error {
     map<string> sortedParameters = sortParameters(parameters);
-    string stringToSign = EMPTY_STRING;
-    stringToSign += POST + NEW_LINE;
-    stringToSign += AMAZON_AWS_HOST + NEW_LINE;
-    stringToSign += ENDPOINT + NEW_LINE;
-    stringToSign += buildPayload(sortedParameters);
-    return stringToSign;
+    return string `POST${NEW_LINE}${host.toLowerAscii()}${NEW_LINE}/${NEW_LINE}${buildPayload(sortedParameters)}`;
 }
 
 isolated function buildPayload(map<string> parameters) returns string {
@@ -141,9 +129,9 @@ isolated function buildPayload(map<string> parameters) returns string {
     int parameterNumber = 1;
     foreach var [key, value] in parameters.entries() {
         if parameterNumber > 1 {
-            payload += AMBERSAND;
+            payload += "&";
         }
-        payload += key + EQUAL + value;
+        payload += string `${key}=${value}`;
         parameterNumber += 1;
     }
     return payload;

@@ -15,54 +15,68 @@
 // under the License.
 
 import ballerina/http;
-import ballerinax/'client.config;
+import ballerinax/aws;
+import ballerinax/aws.auth;
 
 # Ballerina Amazon SimpleDB API connector provides the capability to access Amazon SimpleDB Service.
 # This connector lets you to create and manage the SimpleDB domains.
-#
-# + amazonSimpleDBClient - Connector HTTP endpoint
-# + accessKeyId - Amazon API access key
-# + secretAccessKey - Amazon API secret key
-# + securityToken - Security token
-# + region - Amazon API Region
-# + amazonHost - Amazon host name
-@display {label: "Amazon SimpleDB", iconPath: "resources/aws.simpledb.svg"}
+@display {label: "Amazon SimpleDB", iconPath: "icon.png"}
 public isolated client class Client {
-    final string accessKeyId;
-    final string secretAccessKey;
-    final string? securityToken;
-    final string region;
-    final string amazonHost;
-    final http:Client amazonSimpleDBClient;
+    private final http:Client amazonSimpleDBClient;
+    private final auth:CredentialProvider credentialProvider;
+    private final string host;
 
     # Initializes the connector.
+    # ```ballerina
+    # simpledb:Client amazonSimpleDBClient = check new ({
+    #     auth: {
+    #         accessKeyId: "<AWS_ACCESS_KEY_ID>",
+    #         secretAccessKey: "<AWS_SECRET_ACCESS_KEY>"
+    #     },
+    #     region: aws:US_EAST_1
+    # });
+    # ```
     #
     # + config - Configuration for the connector
-    # + httpClientConfig - HTTP Configuration
-    # + return - `http:Error` in case of failure to initialize or `null` if successfully initialized
+    # + return - An `error` on failure of initialization, or else `()`
     public isolated function init(ConnectionConfig config) returns error? {
-        self.accessKeyId = config.awsCredentials.accessKeyId;
-        self.secretAccessKey = config.awsCredentials.secretAccessKey;
-        self.securityToken = (config?.awsCredentials?.securityToken is string) ?
-            <string>(config?.awsCredentials?.securityToken) : ();
-        self.region = config.region;
-        http:ClientConfiguration httpClientConfig = check config:constructHTTPClientConfig(config);
-        self.amazonHost = AMAZON_AWS_HOST;
-        string baseURL = HTTPS + self.amazonHost;
-        check validateCredentials(self.accessKeyId, self.secretAccessKey);
-        self.amazonSimpleDBClient = check new (baseURL, httpClientConfig);
+        http:ClientConfiguration httpClientConfig = {
+            httpVersion: config.httpVersion,
+            http1Settings: config.http1Settings,
+            http2Settings: config.http2Settings,
+            timeout: config.timeout,
+            forwarded: config.forwarded,
+            followRedirects: config.followRedirects,
+            poolConfig: config.poolConfig,
+            cache: config.cache,
+            compression: config.compression,
+            circuitBreaker: config.circuitBreaker,
+            retryConfig: config.retryConfig,
+            cookieConfig: config.cookieConfig,
+            responseLimits: config.responseLimits,
+            secureSocket: config.secureSocket,
+            proxy: config.proxy,
+            socketConfig: config.socketConfig,
+            validation: config.validation,
+            laxDataBinding: config.laxDataBinding
+        };
+        aws:EndpointConfig endpointConfig = config.endpoint ?: {};
+        self.host = aws:resolveEndpointHost(SERVICE_NAME, config.region, endpointConfig);
+        string baseUrl = aws:resolveEndpoint(SERVICE_NAME, config.region, endpointConfig);
+        self.credentialProvider = check new (config.auth);
+        self.amazonSimpleDBClient = check new (baseUrl, httpClientConfig);
     }
 
     # Create a domain.
     #
     # + domainName - Name of domain
     # + return - `CreateDomainResponse` on success else an `error`
-    remote isolated function createDomain(string domainName) returns @tainted CreateDomainResponse|xml|error {
+    remote isolated function createDomain(string domainName) returns CreateDomainResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(CREATE_DOMAIN);
+        parameters[ACTION] = check urlEncode("CreateDomain");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         CreateDomainResponse|xml createdDomainResponse = check xmlToCreatedDomain(response);
         return createdDomainResponse;
     }
@@ -71,12 +85,12 @@ public isolated client class Client {
     #
     # + domainName - Name of domain
     # + return - `DomainMetaDataResponse` on success else an `error`
-    remote isolated function getDomainMetaData(string domainName) returns @tainted DomainMetaDataResponse|xml|error {
+    remote isolated function getDomainMetaData(string domainName) returns DomainMetaDataResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(DOMAIN_METADATA);
+        parameters[ACTION] = check urlEncode("DomainMetadata");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         DomainMetaDataResponse|xml domainMetaDataResponse = check xmlToDomainMetaData(response);
         return domainMetaDataResponse;
     }
@@ -86,13 +100,13 @@ public isolated client class Client {
     # + selectExpression - Select expression to get attributes
     # + consistentRead - True if consistent reads are to be accepted
     # + return - `SelectResponse` on success else an `error`
-    remote isolated function 'select(string selectExpression, boolean consistentRead) returns @tainted SelectResponse|xml|error {
+    remote isolated function 'select(string selectExpression, boolean consistentRead) returns SelectResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(SELECT);
-        parameters[SELECT_EXPRESSION] = check urlEncode(selectExpression);
+        parameters[ACTION] = check urlEncode("Select");
+        parameters["SelectExpression"] = check urlEncode(selectExpression);
         parameters[CONSISTENT_READ] = check urlEncode(consistentRead.toString());
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         SelectResponse|xml selectResponse = check xmlToSelectResponse(response);
         return selectResponse;
     }
@@ -100,11 +114,11 @@ public isolated client class Client {
     # list available domains.
     #
     # + return - `ListDomainsResponse` on success else an `error`
-    remote isolated function listDomains() returns @tainted ListDomainsResponse|xml|error {
+    remote isolated function listDomains() returns ListDomainsResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(LIST_DOMAIN);
+        parameters[ACTION] = check urlEncode("ListDomains");
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         ListDomainsResponse|xml listDomainsResponse = check xmlToListsDomain(response);
         return listDomainsResponse;
     }
@@ -113,12 +127,12 @@ public isolated client class Client {
     #
     # + domainName - Name of domain
     # + return - `DeleteDomainResponse` on success else an `error`
-    remote isolated function deleteDomain(string domainName) returns @tainted DeleteDomainResponse|xml|error {
+    remote isolated function deleteDomain(string domainName) returns DeleteDomainResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(DELETE_DOMAIN);
-        parameters[DOMAIN_NAME] = domainName;
+        parameters[ACTION] = check urlEncode("DeleteDomain");
+        parameters[DOMAIN_NAME] = check urlEncode(domainName);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         DeleteDomainResponse|xml deletedDomainResponse = check xmlToDeletedDomain(response);
         return deletedDomainResponse;
     }
@@ -129,48 +143,52 @@ public isolated client class Client {
     # + itemName - Name of item
     # + consistentRead - True if consistent reads are to be accepted
     # + return - `GetAttributesResponse` on success else an `error`
-    remote isolated function getAttributes(string domainName, string itemName, boolean consistentRead) returns @tainted GetAttributesResponse|xml|error {
+    remote isolated function getAttributes(string domainName, string itemName, boolean consistentRead) returns GetAttributesResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(GET_ATTRIBUTES);
+        parameters[ACTION] = check urlEncode("GetAttributes");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         parameters[ITEM_NAME] = check urlEncode(itemName);
         parameters[CONSISTENT_READ] = check urlEncode(consistentRead.toString());
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         GetAttributesResponse|xml getAttributesResponse = check xmlToGetAttributesResponse(response);
         return getAttributesResponse;
     }
 
-    # Creates or replaces attributes in an item.
+    # Creates an attribute in an item. The value is added to the attribute rather
+    # than replacing any value it already has.
     #
     # + domainName - Name of domain
     # + itemName - Name of item
-    # + attributes - Attributes to create or replace values
+    # + attributes - Attributes to create
     # + return - `PutAttributesResponse` on success else an `error`
-    remote isolated function putAttributes(string domainName, string itemName, Attribute attributes) returns @tainted PutAttributesResponse|xml|error {
+    remote isolated function putAttributes(string domainName, string itemName, Attribute[] attributes) returns PutAttributesResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(PUT_ATTRIBUTES);
+        parameters[ACTION] = check urlEncode("PutAttributes");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         parameters[ITEM_NAME] = check urlEncode(itemName);
+        parameters = check setAttributes(parameters, attributes);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         PutAttributesResponse|xml putAttributesResponse = check xmlToPutAttributesResponse(response);
         return putAttributesResponse;
     }
 
-    # Delete attributes in an item.
+    # Delete attributes in an item. When `attributes` is empty, the whole item is
+    # deleted.
     #
     # + domainName - Name of domain
     # + itemName - Name of item
-    # + attributes - Attributes to create or replace values
+    # + attributes - Attributes to delete
     # + return - `DeleteAttributesResponse` on success else an `error`
-    remote isolated function deleteAttributes(string domainName, string itemName, Attribute attributes) returns @tainted DeleteAttributesResponse|xml|error {
+    remote isolated function deleteAttributes(string domainName, string itemName, Attribute[] attributes) returns DeleteAttributesResponse|xml|error {
         map<string> parameters = {};
-        parameters[ACTION] = check urlEncode(DELETE_ATTRIBUTES);
+        parameters[ACTION] = check urlEncode("DeleteAttributes");
         parameters[DOMAIN_NAME] = check urlEncode(domainName);
         parameters[ITEM_NAME] = check urlEncode(itemName);
+        parameters = check setAttributes(parameters, attributes);
         xml response = check sendRequest(self.amazonSimpleDBClient, generateRequest(),
-                                        check generateQueryParameters(parameters, self.accessKeyId, self.secretAccessKey));
+                check generateQueryParameters(parameters, self.credentialProvider, self.host));
         DeleteAttributesResponse|xml deleteAttributesResponse = check xmlToDeleteAttributesResponse(response);
         return deleteAttributesResponse;
     }
