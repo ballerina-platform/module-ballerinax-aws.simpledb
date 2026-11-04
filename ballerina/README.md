@@ -1,6 +1,8 @@
 ## Overview
 
-[Amazon SimpleDB](https://aws.amazon.com/simpledb/) is a highly available NoSQL data store that offloads the work of database administration. Data is organised into *domains*, each holding *items* identified by a name, and each item holding *attributes* that are name–value pairs. Attributes are schemaless — different items in the same domain may carry entirely different attributes — and every value is indexed automatically, so a domain can be queried with a SQL-like `select` expression without defining indexes up front.
+[Amazon SimpleDB](https://aws.amazon.com/simpledb/) is a highly available NoSQL data store that offloads the work of database administration. Data is organised into *domains*, each holding *items* identified by a name, and each item holding *attributes* that are name–value pairs.
+
+Attributes are schemaless — different items in the same domain may carry entirely different attributes — and every value is indexed automatically, so a domain can be queried with a SQL-like `select` expression without defining indexes up front.
 
 ### Key features
 
